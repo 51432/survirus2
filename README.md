@@ -38,7 +38,8 @@ cmake -DCMAKE_BUILD_TYPE=Release . && make
 - Python2（用于 `surveyor.py`）
 - Python3（用于新封装脚本 `run_survirus_pipeline.py`）
 - NumPy / PyFaidx / PySam
-- bwa（建议经典 bwa，支持 `aln/samse/mem`）
+- bwa（经典版，必须；用于 `aln/samse`，也可作为 `mem` 兜底）
+- bwa-mem2（可选但推荐；本封装会优先自动检测并用于 `mem` 步骤）
 - samtools
 - sdust
 
@@ -99,6 +100,7 @@ python3 run_survirus_pipeline.py \
   --python2 python2 \
   --surveyor surveyor.py \
   --bwa bwa \
+  --bwa-mem2 /path/to/bwa-mem2 \
   --samtools samtools \
   --dust dust
 ```
@@ -129,6 +131,7 @@ sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
 - `SLURM_ARRAY_TASK_ID` 为 1-based，对应 `samples.tsv` 数据行（不含表头）
 - `%8` 表示最大并发 8 个任务，请根据集群情况调整
 - 每个任务只处理 1 个样本
+- 可选通过环境变量指定 mem2：`BWA_MEM2=/path/to/bwa-mem2 sbatch ...`
 
 ---
 
@@ -167,6 +170,8 @@ logs/
 - `--slurm-array`：使用 `SLURM_ARRAY_TASK_ID` 选择样本
 - `--task-id`：手动指定样本行号（本地调试）
 - `--threads`：每样本线程数
+- `--bwa`：经典 bwa 路径（用于 `aln/samse`，必须可用）
+- `--bwa-mem2`：可选指定 bwa-mem2 路径；若不提供会自动检测 `bwa-mem2`，检测不到时自动回退 `bwa mem`
 - `--force`：允许复用已存在样本输出目录
 - `--dry-run`：只打印命令不执行
 

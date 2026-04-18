@@ -4,6 +4,7 @@
 import argparse
 import csv
 import os
+import shutil
 import subprocess
 import sys
 from collections import Counter
@@ -102,6 +103,26 @@ def ensure_output_dir(path, force=False):
         os.makedirs(path)
 
 
+def resolve_aligner_execs(user_bwa, user_bwa_mem2):
+    bwa_exec = user_bwa
+    if shutil.which(bwa_exec) is None:
+        fail(
+            f"Classic bwa not found: {bwa_exec}. "
+            "SurVirus still needs bwa aln/samse steps. Please set --bwa."
+        )
+
+    if user_bwa_mem2:
+        if shutil.which(user_bwa_mem2) is None:
+            fail(f"--bwa-mem2 not found in PATH: {user_bwa_mem2}")
+        return bwa_exec, user_bwa_mem2, "user-specified --bwa-mem2"
+
+    auto_mem2 = shutil.which("bwa-mem2")
+    if auto_mem2:
+        return bwa_exec, auto_mem2, "auto-detected bwa-mem2"
+
+    return bwa_exec, bwa_exec, "fallback to bwa mem"
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run SurVirus from samples.tsv (single sample or Slurm array task)."
@@ -131,6 +152,11 @@ def main():
     parser.add_argument("--host-virus", default=DEFAULT_HOST_VIRUS, help="Host+virus reference fasta")
 
     parser.add_argument("--bwa", default="bwa", help="bwa executable path")
+    parser.add_argument(
+        "--bwa-mem2",
+        default="",
+        help="Optional bwa-mem2 path. If omitted, auto-detect bwa-mem2 first, else fallback to bwa mem.",
+    )
     parser.add_argument("--samtools", default="samtools", help="samtools executable path")
     parser.add_argument("--dust", default="dust", help="dust executable path")
 
@@ -156,6 +182,7 @@ def main():
     os.makedirs(args.outdir, exist_ok=True)
     sample_outdir = os.path.join(args.outdir, sample["sample_id"])
     ensure_output_dir(sample_outdir, force=args.force)
+    bwa_exec, bwa_mem_exec, bwa_mode = resolve_aligner_execs(args.bwa, args.bwa_mem2)
 
     logs_dir = os.path.join(args.outdir, "logs")
     os.makedirs(logs_dir, exist_ok=True)
@@ -173,7 +200,9 @@ def main():
         "--threads",
         str(args.threads),
         "--bwa",
-        args.bwa,
+        bwa_exec,
+        "--bwa-mem",
+        bwa_mem_exec,
         "--samtools",
         args.samtools,
         "--dust",
@@ -183,6 +212,9 @@ def main():
     print(f"[INFO] Selected sample: {sample['sample_id']}")
     print(f"[INFO] Output dir: {sample_outdir}")
     print(f"[INFO] Log file: {log_path}")
+    print(f"[INFO] BWA mode: {bwa_mode}")
+    print(f"[INFO] bwa (aln/samse): {bwa_exec}")
+    print(f"[INFO] bwa-mem engine: {bwa_mem_exec}")
     print("[INFO] Command:")
     print(" ".join(cmd))
 
