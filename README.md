@@ -19,6 +19,7 @@
 ### 新增内容
 - `run_survirus_pipeline.py`：统一入口（读取 `samples.tsv`、参数检查、按样本调用 SurVirus）
 - `run_survirus_array.slurm`：Slurm array 提交脚本
+- `submit_survirus_array.sh`：按实时可用资源自动调优并提交 array（共享集群推荐）
 - `run_survirus_single.sh`：单样本快速调试脚本
 - `examples/samples.tsv`：示例输入文件
 
@@ -133,6 +134,29 @@ sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
 - 每个任务只处理 1 个样本
 - 可选通过环境变量指定 mem2：`BWA_MEM2=/path/to/bwa-mem2 sbatch ...`
 
+### 6.3 推荐：按当前可用资源自动调优提交（共享集群友好）
+
+新增脚本：`submit_survirus_array.sh`。  
+它会实时读取 `cpu1/cpu2` 分区当前空闲 CPU，按你设置的“最多使用 1/2 或 1/3”自动计算 `--array` 并发度。
+
+```bash
+# 默认使用 1/3 空闲 CPU（适合共享环境）
+./submit_survirus_array.sh --samples samples.tsv --outdir results
+
+# 使用 1/2 空闲 CPU（更激进）
+./submit_survirus_array.sh --samples samples.tsv --outdir results --fraction 2
+
+# 自定义每任务线程和内存
+./submit_survirus_array.sh \
+  --samples samples.tsv \
+  --outdir results \
+  --threads-per-task 8 \
+  --mem-gb 48 \
+  --fraction 3
+```
+
+该脚本会输出：样本数、idle CPU、safe CPU、最终 array 并发和完整 sbatch 命令，便于你审计资源占用。
+
 ---
 
 ## 7. 输出目录结构
@@ -174,6 +198,12 @@ logs/
 - `--bwa-mem2`：可选指定 bwa-mem2 路径；若不提供会自动检测 `bwa-mem2`，检测不到时自动回退 `bwa mem`
 - `--force`：允许复用已存在样本输出目录
 - `--dry-run`：只打印命令不执行
+
+`submit_survirus_array.sh` 关键参数：
+- `--fraction`：最多使用当前空闲 CPU 的 `1/N`（推荐 2 或 3）
+- `--threads-per-task`：每个样本任务申请 CPU 核数
+- `--mem-gb`：每个样本任务内存
+- `--max-parallel`：手动上限（防止并发过高）
 
 ---
 

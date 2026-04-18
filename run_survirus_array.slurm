@@ -12,6 +12,7 @@ set -euo pipefail
 
 # Usage:
 #   sbatch --array=1-N%K run_survirus_array.slurm samples.tsv results
+#   (Recommended) use submit_survirus_array.sh for resource-aware auto tuning.
 #
 # Notes:
 # - samples.tsv must have header with columns: sample_id, input_R1, input_R2
