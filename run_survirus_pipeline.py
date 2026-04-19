@@ -14,6 +14,18 @@ DEFAULT_VIRUS = "/data/person/wup/public/liusy_files/reference_genomes/virus/ref
 DEFAULT_HOST_VIRUS = "/data/person/wup/public/liusy_files/reference_genomes/host_virus/reference/host_virus.fa"
 
 REQUIRED_COLUMNS = ("sample_id", "input_R1", "input_R2")
+REQUIRED_BINARIES = (
+    "isolate_relevant_pairs",
+    "isolate_relevant_pairs_fq",
+    "filter_by_qname",
+    "extract_clips",
+    "reads_categorizer",
+    "merge_retained_reads",
+    "build_region-reads_associations",
+    "remapper",
+    "bp_region_consensus_builder",
+    "filter",
+)
 
 
 def fail(msg):
@@ -116,6 +128,34 @@ def resolve_bwa_exec(user_bwa):
     )
 
 
+def preflight_runtime_checks(surveyor_path, host_ref, virus_ref, host_virus_ref):
+    if not os.path.exists(surveyor_path):
+        fail(f"surveyor.py not found: {surveyor_path}")
+
+    survirus_root = os.path.dirname(os.path.realpath(surveyor_path))
+    missing_bins = []
+    for name in REQUIRED_BINARIES:
+        p = os.path.join(survirus_root, name)
+        if not (os.path.exists(p) and os.access(p, os.X_OK)):
+            missing_bins.append(p)
+    if missing_bins:
+        fail(
+            "Missing SurVirus compiled binaries (build may be incomplete). Missing: "
+            + ", ".join(missing_bins)
+        )
+
+    for ref in (host_ref, virus_ref, host_virus_ref):
+        if not os.path.exists(ref):
+            fail(f"Reference FASTA not found: {ref}")
+        bwt2 = ref + ".bwt.2bit.64"
+        packed = ref + ".0123"
+        if not (os.path.exists(bwt2) and os.path.exists(packed)):
+            fail(
+                f"bwa-mem2 index missing for reference: {ref}. "
+                f"Expected files: {bwt2} and {packed}. Please run: bwa-mem2 index {ref}"
+            )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run SurVirus from samples.tsv (single sample or Slurm array task)."
@@ -170,6 +210,7 @@ def main():
     sample_outdir = os.path.join(args.outdir, sample["sample_id"])
     ensure_output_dir(sample_outdir)
     bwa_exec = resolve_bwa_exec(args.bwa)
+    preflight_runtime_checks(args.surveyor, args.host, args.virus, args.host_virus)
 
     logs_dir = os.path.join(args.outdir, "logs")
     os.makedirs(logs_dir, exist_ok=True)

@@ -30,7 +30,10 @@ SURVIRUS_PATH = os.path.dirname(os.path.realpath(__file__))
 
 def execute(cmd):
     print "Executing:", cmd
-    os.system(cmd)
+    code = os.system(cmd)
+    if code != 0:
+        print "Command failed:", cmd
+        exit(1)
 
 input_names = cmd_args.input_files.split(',')
 if cmd_args.fq:

@@ -255,3 +255,21 @@ cmake -DCMAKE_BUILD_TYPE=Release . && make
 export BWA_MEM2=/data/person/wup/liusy/software/bwa-mem2-2.2.1_x64-linux/bwa-mem2
 sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
 ```
+
+### 报错：`extract_clips: No such file or directory` / `reads_categorizer: No such file or directory`
+
+说明 SurVirus C++ 可执行程序未编译完整（或 `surveyor.py` 路径不在编译目录内）。请在仓库根目录重新编译：
+
+```bash
+./build_libs.sh
+cmake -DCMAKE_BUILD_TYPE=Release . && make
+```
+
+### 报错：`ERROR! Unable to open ... .bwt.2bit.64`
+
+说明 reference 没有建立 bwa-mem2 索引。请对 host / virus / host_virus 都执行：
+
+```bash
+bwa-mem2 index /path/to/reference.fa
+samtools faidx /path/to/reference.fa
+```
