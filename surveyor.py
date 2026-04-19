@@ -11,7 +11,7 @@ cmd_parser.add_argument('host_and_virus_reference', help='Joint references of ho
 cmd_parser.add_argument('--threads', type=int, default=1, help='Number of threads to be used.')
 cmd_parser.add_argument('--bwa', default='bwa-mem2', help='bwa-mem2 path.')
 cmd_parser.add_argument('--samtools', help='Samtools path.', default='samtools')
-cmd_parser.add_argument('--dust', help='Dust path.', default='dust')
+cmd_parser.add_argument('--dust', help='Dust path.', default='sdust')
 cmd_parser.add_argument('--wgs', action='store_true', help='The reference genome is uniformly covered by reads.'
                                                            'SurVirus needs to sample read pairs, and this option lets'
                                                            'it sample them from all over the genome.')
