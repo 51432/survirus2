@@ -9,9 +9,7 @@ cmd_parser.add_argument('host_reference', help='Reference of the host organism i
 cmd_parser.add_argument('virus_reference', help='References of a list of viruses in FASTA format.')
 cmd_parser.add_argument('host_and_virus_reference', help='Joint references of host and viruses.')
 cmd_parser.add_argument('--threads', type=int, default=1, help='Number of threads to be used.')
-cmd_parser.add_argument('--bwa', default='bwa', help='BWA path.')
-cmd_parser.add_argument('--bwa-mem', default='', help='Optional bwa-mem2 path for MEM alignment steps.'
-                                                       'If not provided, --bwa will be used.')
+cmd_parser.add_argument('--bwa', default='bwa-mem2', help='bwa-mem2 path.')
 cmd_parser.add_argument('--samtools', help='Samtools path.', default='samtools')
 cmd_parser.add_argument('--dust', help='Dust path.', default='dust')
 cmd_parser.add_argument('--wgs', action='store_true', help='The reference genome is uniformly covered by reads.'
@@ -27,7 +25,6 @@ cmd_parser.add_argument('--fq', action='store_true', help='Input is in fastq for
 cmd_parser.add_argument('--cram-reference', help='Can optionally provide a reference for decoding the input file(s) if '
                                                  'in CRAM.')
 cmd_args = cmd_parser.parse_args()
-bwa_mem_exec = cmd_args.bwa_mem if cmd_args.bwa_mem else cmd_args.bwa
 
 SURVIRUS_PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -75,7 +72,7 @@ if cmd_args.fq:
 
     max_read_len, max_is = \
         max_is_calc.get_max_is_from_fq(cmd_args.workdir, input_names[0], input_names[1], cmd_args.host_and_virus_reference, \
-                                            bwa_mem_exec, cmd_args.threads)
+                                            cmd_args.bwa, cmd_args.threads)
     with open("%s/stats.txt" % bam_workspace, "w") as stat_file:
         stat_file.write("max_is %d\n" % max_is)
     config_file.write("read_len %d\n" % max_read_len)
@@ -115,35 +112,16 @@ else:
 
 
 def map_clips(prefix, reference):
-    bwa_aln_cmd = "%s aln -t %d %s %s.fa -f %s.sai" \
-                  % (cmd_args.bwa, cmd_args.threads, reference, prefix, prefix)
-    bwa_samse_cmd = "%s samse %s %s.sai %s.fa | %s view -b -F 2304 > %s.full.bam" \
-                    % (cmd_args.bwa, reference, prefix, prefix, cmd_args.samtools, prefix)
-    execute(bwa_aln_cmd)
-    execute(bwa_samse_cmd)
-
-    filter_unmapped_cmd = "%s view -b -F 4 %s.full.bam > %s.aln.bam" \
-                          % (cmd_args.samtools, prefix, prefix)
-    execute(filter_unmapped_cmd)
-
-    dump_unmapped_fa = "%s fasta -f 4 %s.full.bam > %s.unmapped.fa" \
-                       % (cmd_args.samtools, prefix, prefix)
-    execute(dump_unmapped_fa)
-
-    bwa_mem_cmd = "%s mem -t %d %s %s.unmapped.fa | %s view -b -F 2308 > %s.mem.bam" \
-                  % (bwa_mem_exec, cmd_args.threads, reference, prefix,
+    bwa_mem_cmd = "%s mem -t %d %s %s.fa | %s view -b -F 2308 > %s.bam" \
+                  % (cmd_args.bwa, cmd_args.threads, reference, prefix,
                      cmd_args.samtools, prefix)
     execute(bwa_mem_cmd)
-
-    cat_cmd = "%s cat %s.aln.bam %s.mem.bam -o %s.bam" \
-              % (cmd_args.samtools, prefix, prefix, prefix)
-    execute(cat_cmd)
 
     pysam.sort("-@", str(cmd_args.threads), "-o", "%s.cs.bam" % prefix, "%s.bam" % prefix)
 
 for bam_workspace in bam_workspaces:
     bwa_cmd = "%s mem -t %d %s %s/retained-pairs_1.fq %s/retained-pairs_2.fq | %s view -b -F 2304 > %s/retained-pairs.remapped.bam" \
-              % (bwa_mem_exec, cmd_args.threads, cmd_args.host_and_virus_reference, \
+              % (cmd_args.bwa, cmd_args.threads, cmd_args.host_and_virus_reference, \
                  bam_workspace, bam_workspace, cmd_args.samtools, bam_workspace)
     execute(bwa_cmd)
 
@@ -168,13 +146,13 @@ for bam_workspace in bam_workspaces:
                "%s/virus-anchors.bam" % bam_workspace)
 
     bwa_cmd = "%s mem -t %d -h %d %s %s/virus-side.fq | %s view -b -F 2308 > %s/virus-side.bam" \
-              % (bwa_mem_exec, cmd_args.threads, n_viruses, cmd_args.host_and_virus_reference, bam_workspace,
+              % (cmd_args.bwa, cmd_args.threads, n_viruses, cmd_args.host_and_virus_reference, bam_workspace,
                  cmd_args.samtools, bam_workspace)
     execute(bwa_cmd)
     pysam.sort("-@", str(cmd_args.threads), "-o", "%s/virus-side.cs.bam" % bam_workspace, "%s/virus-side.bam" % bam_workspace)
 
     bwa_cmd = "%s mem -t %d -h 100 %s %s/host-side.fq | %s view -b -F 2308 > %s/host-side.bam" \
-              % (bwa_mem_exec, cmd_args.threads, cmd_args.host_and_virus_reference, bam_workspace,
+              % (cmd_args.bwa, cmd_args.threads, cmd_args.host_and_virus_reference, bam_workspace,
                  cmd_args.samtools, bam_workspace)
     execute(bwa_cmd)
     pysam.sort("-@", str(cmd_args.threads), "-o", "%s/host-side.cs.bam" % bam_workspace, "%s/host-side.bam" % bam_workspace)
@@ -227,7 +205,7 @@ execute(filter_cmd)
 print "Finding alternative locations..."
 
 bwa_cmd = "%s mem -t %d -h 1000 %s %s/host_bp_seqs.fa | %s view -b -F 2308 > %s/host_bp_seqs.bam" \
-          % (bwa_mem_exec, cmd_args.threads, cmd_args.host_reference, cmd_args.workdir, cmd_args.samtools, cmd_args.workdir)
+          % (cmd_args.bwa, cmd_args.threads, cmd_args.host_reference, cmd_args.workdir, cmd_args.samtools, cmd_args.workdir)
 execute(bwa_cmd)
 
 with pysam.AlignmentFile("%s/host_bp_seqs.bam" % cmd_args.workdir) as bp_seqs_bam, \

@@ -16,7 +16,6 @@ python3 run_survirus_pipeline.py \
   --threads "$THREADS" \
   --python2 "python2" \
   --surveyor "surveyor.py" \
-  --bwa "bwa" \
-  --bwa-mem2 "${BWA_MEM2:-}" \
+  --bwa "${BWA_MEM2:-bwa-mem2}" \
   --samtools "samtools" \
   --dust "dust"
