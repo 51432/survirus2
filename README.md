@@ -76,6 +76,18 @@ sampleA	/path/to/sampleA.R1.fastp.gz	/path/to/sampleA.R2.fastp.gz
 sampleB	/path/to/sampleB.R1.fastp.gz	/path/to/sampleB.R2.fastp.gz
 ```
 
+
+```bash
+# 切换到目标目录
+cd /data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/fastp
+
+# 直接执行生成samples.tsv的命令（一行版）
+(echo -e "sample_id\tinput_R1\tinput_R2"; for f in *.R1.fastp.gz; do sample=${f%.R1.fastp.gz}; echo -e "$sample\t$(pwd)/$f\t$(pwd)/${sample}.R2.fastp.gz"; done) > samples.tsv
+
+# 然后将上述代码添加到README.md
+echo -e "\n## 生成samples.tsv文件\n\n\`\`\`bash\n# 生成样本文件的TSV表格\n(echo -e \"sample_id\tinput_R1\tinput_R2\"; for f in *.R1.fastp.gz; do sample=\${f%.R1.fastp.gz}; echo -e \"\$sample\t\$(pwd)/\$f\t\$(pwd)/\${sample}.R2.fastp.gz\"; done) > samples.tsv\n\`\`\`" >> README.md
+
+
 程序会做以下检查并给出清晰报错：
 - `samples.tsv` 是否存在
 - 表头是否包含必须列
