@@ -282,3 +282,5 @@ samtools faidx /path/to/reference.fa
 export DUST_EXEC=/data/person/wup/liusy/software/sdust-master/sdust
 sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
 ```
+
+说明：当前版本 `surveyor.py` 在检测到 `dust` 不存在且 `sdust` 存在时，会自动切换到 `sdust`。

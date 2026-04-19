@@ -1,6 +1,7 @@
 import argparse, os
 import pysam, pyfaidx
 import max_is_calc
+from distutils.spawn import find_executable
 
 cmd_parser = argparse.ArgumentParser(description='SurVirus, a virus integration caller.')
 cmd_parser.add_argument('input_files', help='Input files, separated by a comma.')
@@ -25,6 +26,10 @@ cmd_parser.add_argument('--fq', action='store_true', help='Input is in fastq for
 cmd_parser.add_argument('--cram-reference', help='Can optionally provide a reference for decoding the input file(s) if '
                                                  'in CRAM.')
 cmd_args = cmd_parser.parse_args()
+
+if cmd_args.dust == 'dust' and find_executable('dust') is None and find_executable('sdust') is not None:
+    print "Warning: dust not found, auto-switching to sdust."
+    cmd_args.dust = 'sdust'
 
 SURVIRUS_PATH = os.path.dirname(os.path.realpath(__file__))
 
