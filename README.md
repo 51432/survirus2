@@ -83,7 +83,7 @@ sampleB	/path/to/sampleB.R1.fastp.gz	/path/to/sampleB.R2.fastp.gz
 - 重复 `sample_id`
 - FASTQ 文件是否存在
 - Slurm task id 是否越界
-- 输出目录是否已存在（默认不覆盖，需 `--force`）
+- 输出目录若已存在会自动删除并覆盖（同一样本重跑时直接覆盖旧结果）
 
 ---
 
@@ -193,7 +193,6 @@ logs/
 - `--task-id`：手动指定样本行号（本地调试）
 - `--threads`：每样本线程数
 - `--bwa`：bwa-mem2 路径（默认 `bwa-mem2`）
-- `--force`：允许复用已存在样本输出目录
 - `--dry-run`：只打印命令不执行
 
 `submit_survirus_array.sh` 关键参数：

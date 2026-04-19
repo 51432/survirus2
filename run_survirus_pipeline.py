@@ -4,6 +4,7 @@
 import argparse
 import csv
 import os
+import shutil
 import subprocess
 import sys
 from collections import Counter
@@ -91,15 +92,11 @@ def select_sample(rows, sample_id=None, array_task_id=None):
     )
 
 
-def ensure_output_dir(path, force=False):
+def ensure_output_dir(path):
     if os.path.exists(path):
-        if not force:
-            fail(
-                f"Output directory already exists: {path}. "
-                "Use --force to reuse the directory."
-            )
-    else:
-        os.makedirs(path)
+        print(f"[WARN] Output directory exists and will be overwritten: {path}")
+        shutil.rmtree(path)
+    os.makedirs(path)
 
 
 def resolve_bwa_exec(user_bwa):
@@ -151,7 +148,6 @@ def main():
     parser.add_argument("--samtools", default="samtools", help="samtools executable path")
     parser.add_argument("--dust", default="dust", help="dust executable path")
 
-    parser.add_argument("--force", action="store_true", help="Reuse existing sample output directory")
     parser.add_argument("--dry-run", action="store_true", help="Only print command, do not run")
 
     args = parser.parse_args()
@@ -172,7 +168,7 @@ def main():
 
     os.makedirs(args.outdir, exist_ok=True)
     sample_outdir = os.path.join(args.outdir, sample["sample_id"])
-    ensure_output_dir(sample_outdir, force=args.force)
+    ensure_output_dir(sample_outdir)
     bwa_exec = resolve_bwa_exec(args.bwa)
 
     logs_dir = os.path.join(args.outdir, "logs")
