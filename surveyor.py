@@ -9,7 +9,7 @@ cmd_parser.add_argument('host_reference', help='Reference of the host organism i
 cmd_parser.add_argument('virus_reference', help='References of a list of viruses in FASTA format.')
 cmd_parser.add_argument('host_and_virus_reference', help='Joint references of host and viruses.')
 cmd_parser.add_argument('--threads', type=int, default=1, help='Number of threads to be used.')
-cmd_parser.add_argument('--bwa', default='bwa', help='BWA path.')
+cmd_parser.add_argument('--bwa', default='bwa-mem2', help='bwa-mem2 path.')
 cmd_parser.add_argument('--samtools', help='Samtools path.', default='samtools')
 cmd_parser.add_argument('--dust', help='Dust path.', default='dust')
 cmd_parser.add_argument('--wgs', action='store_true', help='The reference genome is uniformly covered by reads.'
@@ -112,29 +112,10 @@ else:
 
 
 def map_clips(prefix, reference):
-    bwa_aln_cmd = "%s aln -t %d %s %s.fa -f %s.sai" \
-                  % (cmd_args.bwa, cmd_args.threads, reference, prefix, prefix)
-    bwa_samse_cmd = "%s samse %s %s.sai %s.fa | %s view -b -F 2304 > %s.full.bam" \
-                    % (cmd_args.bwa, reference, prefix, prefix, cmd_args.samtools, prefix)
-    execute(bwa_aln_cmd)
-    execute(bwa_samse_cmd)
-
-    filter_unmapped_cmd = "%s view -b -F 4 %s.full.bam > %s.aln.bam" \
-                          % (cmd_args.samtools, prefix, prefix)
-    execute(filter_unmapped_cmd)
-
-    dump_unmapped_fa = "%s fasta -f 4 %s.full.bam > %s.unmapped.fa" \
-                       % (cmd_args.samtools, prefix, prefix)
-    execute(dump_unmapped_fa)
-
-    bwa_mem_cmd = "%s mem -t %d %s %s.unmapped.fa | %s view -b -F 2308 > %s.mem.bam" \
+    bwa_mem_cmd = "%s mem -t %d %s %s.fa | %s view -b -F 2308 > %s.bam" \
                   % (cmd_args.bwa, cmd_args.threads, reference, prefix,
                      cmd_args.samtools, prefix)
     execute(bwa_mem_cmd)
-
-    cat_cmd = "%s cat %s.aln.bam %s.mem.bam -o %s.bam" \
-              % (cmd_args.samtools, prefix, prefix, prefix)
-    execute(cat_cmd)
 
     pysam.sort("-@", str(cmd_args.threads), "-o", "%s.cs.bam" % prefix, "%s.bam" % prefix)
 
@@ -244,4 +225,3 @@ with pysam.AlignmentFile("%s/host_bp_seqs.bam" % cmd_args.workdir) as bp_seqs_ba
             pos = abs(pos)
             if not is_rev: pos += r.query_length
             altf.write("ID=%s %s:%c%d\n" % (id, xa_region_split[0], "-" if is_rev else "+", pos))
-
