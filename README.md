@@ -101,7 +101,7 @@ python3 run_survirus_pipeline.py \
   --surveyor surveyor.py \
   --bwa /path/to/bwa-mem2 \
   --samtools samtools \
-  --dust dust
+  --dust /path/to/sdust
 ```
 
 ### 方法 B：使用便捷脚本
@@ -272,4 +272,13 @@ cmake -DCMAKE_BUILD_TYPE=Release . && make
 ```bash
 bwa-mem2 index /path/to/reference.fa
 samtools faidx /path/to/reference.fa
+```
+
+### 报错：`dust: command not found`
+
+本流程默认使用 `sdust`（不是 `dust`）。请指定 sdust 路径，例如：
+
+```bash
+export DUST_EXEC=/data/person/wup/liusy/software/sdust-master/sdust
+sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
 ```

@@ -128,6 +128,23 @@ def resolve_bwa_exec(user_bwa):
     )
 
 
+def resolve_dust_exec(user_dust):
+    cmd = f"command -v {user_dust} >/dev/null 2>&1"
+    if os.system(cmd) == 0:
+        return user_dust
+
+    # Backward-compatible safety net:
+    # if user still passed "--dust dust" but only sdust exists, auto-fallback.
+    if user_dust == "dust" and os.system("command -v sdust >/dev/null 2>&1") == 0:
+        print("[WARN] '--dust dust' not found. Auto-switching to detected sdust.", file=sys.stderr)
+        return "sdust"
+
+    fail(
+        f"dust executable not found: {user_dust}. "
+        "Please set --dust to a valid sdust path (or export DUST_EXEC)."
+    )
+
+
 def preflight_runtime_checks(surveyor_path, host_ref, virus_ref, host_virus_ref):
     if not os.path.exists(surveyor_path):
         fail(f"surveyor.py not found: {surveyor_path}")
@@ -186,7 +203,7 @@ def main():
 
     parser.add_argument("--bwa", default="bwa-mem2", help="bwa-mem2 executable path")
     parser.add_argument("--samtools", default="samtools", help="samtools executable path")
-    parser.add_argument("--dust", default="dust", help="dust executable path")
+    parser.add_argument("--dust", default="sdust", help="sdust executable path")
 
     parser.add_argument("--dry-run", action="store_true", help="Only print command, do not run")
 
@@ -210,6 +227,7 @@ def main():
     sample_outdir = os.path.join(args.outdir, sample["sample_id"])
     ensure_output_dir(sample_outdir)
     bwa_exec = resolve_bwa_exec(args.bwa)
+    dust_exec = resolve_dust_exec(args.dust)
     preflight_runtime_checks(args.surveyor, args.host, args.virus, args.host_virus)
 
     logs_dir = os.path.join(args.outdir, "logs")
@@ -232,13 +250,14 @@ def main():
         "--samtools",
         args.samtools,
         "--dust",
-        args.dust,
+        dust_exec,
     ]
 
     print(f"[INFO] Selected sample: {sample['sample_id']}")
     print(f"[INFO] Output dir: {sample_outdir}")
     print(f"[INFO] Log file: {log_path}")
     print(f"[INFO] bwa-mem2 engine: {bwa_exec}")
+    print(f"[INFO] dust engine: {dust_exec}")
     print("[INFO] Command:")
     print(" ".join(cmd))
 

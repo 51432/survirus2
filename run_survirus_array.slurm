@@ -32,4 +32,4 @@ python3 run_survirus_pipeline.py \
   --surveyor "surveyor.py" \
   --bwa "${BWA_MEM2:-bwa-mem2}" \
   --samtools "samtools" \
-  --dust "dust"
+  --dust "${DUST_EXEC:-sdust}"
