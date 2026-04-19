@@ -76,17 +76,41 @@ sampleA	/path/to/sampleA.R1.fastp.gz	/path/to/sampleA.R2.fastp.gz
 sampleB	/path/to/sampleB.R1.fastp.gz	/path/to/sampleB.R2.fastp.gz
 ```
 
-
+### 生成 samples.tsv 的bash脚本
 ```bash
-# 切换到目标目录
-cd /data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/fastp
+#!/bin/bash
 
-# 直接执行生成samples.tsv的命令（一行版）
-(echo -e "sample_id\tinput_R1\tinput_R2"; for f in *.R1.fastp.gz; do sample=${f%.R1.fastp.gz}; echo -e "$sample\t$(pwd)/$f\t$(pwd)/${sample}.R2.fastp.gz"; done) > samples.tsv
+# 设置数据目录路径
+DATA_DIR="/data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/fastp"
+OUTPUT_FILE="samples.tsv"
 
-# 然后将上述代码添加到README.md
-echo -e "\n## 生成samples.tsv文件\n\n\`\`\`bash\n# 生成样本文件的TSV表格\n(echo -e \"sample_id\tinput_R1\tinput_R2\"; for f in *.R1.fastp.gz; do sample=\${f%.R1.fastp.gz}; echo -e \"\$sample\t\$(pwd)/\$f\t\$(pwd)/\${sample}.R2.fastp.gz\"; done) > samples.tsv\n\`\`\`" >> README.md
+# 写入表头
+echo -e "sample_id\tinput_R1\tinput_R2" > "$OUTPUT_FILE"
 
+# 提取所有唯一的样本ID
+declare -A samples
+
+# 遍历所有 .R1.fastp.gz 文件
+for r1_file in "$DATA_DIR"/*.R1.fastp.gz; do
+    # 获取文件名（不含路径）
+    basename=$(basename "$r1_file")
+    # 提取样本ID（去掉 .R1.fastp.gz）
+    sample_id=${basename%.R1.fastp.gz}
+    
+    # 构建对应的R2文件路径
+    r2_file="$DATA_DIR/${sample_id}.R2.fastp.gz"
+    
+    # 检查R2文件是否存在
+    if [[ -f "$r2_file" ]]; then
+        # 输出到TSV文件
+        echo -e "${sample_id}\t${r1_file}\t${r2_file}" >> "$OUTPUT_FILE"
+    else
+        echo "警告: 找不到 $sample_id 的R2文件" >&2
+    fi
+done
+
+echo "已生成 $OUTPUT_FILE，包含 $(($(wc -l < "$OUTPUT_FILE") - 1)) 个样本"
+```
 
 程序会做以下检查并给出清晰报错：
 - `samples.tsv` 是否存在
