@@ -76,6 +76,42 @@ sampleA	/path/to/sampleA.R1.fastp.gz	/path/to/sampleA.R2.fastp.gz
 sampleB	/path/to/sampleB.R1.fastp.gz	/path/to/sampleB.R2.fastp.gz
 ```
 
+### 生成 samples.tsv 的bash脚本
+```bash
+#!/bin/bash
+
+# 设置数据目录路径
+DATA_DIR="/data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/fastp"
+OUTPUT_FILE="samples.tsv"
+
+# 写入表头
+echo -e "sample_id\tinput_R1\tinput_R2" > "$OUTPUT_FILE"
+
+# 提取所有唯一的样本ID
+declare -A samples
+
+# 遍历所有 .R1.fastp.gz 文件
+for r1_file in "$DATA_DIR"/*.R1.fastp.gz; do
+    # 获取文件名（不含路径）
+    basename=$(basename "$r1_file")
+    # 提取样本ID（去掉 .R1.fastp.gz）
+    sample_id=${basename%.R1.fastp.gz}
+    
+    # 构建对应的R2文件路径
+    r2_file="$DATA_DIR/${sample_id}.R2.fastp.gz"
+    
+    # 检查R2文件是否存在
+    if [[ -f "$r2_file" ]]; then
+        # 输出到TSV文件
+        echo -e "${sample_id}\t${r1_file}\t${r2_file}" >> "$OUTPUT_FILE"
+    else
+        echo "警告: 找不到 $sample_id 的R2文件" >&2
+    fi
+done
+
+echo "已生成 $OUTPUT_FILE，包含 $(($(wc -l < "$OUTPUT_FILE") - 1)) 个样本"
+```
+
 程序会做以下检查并给出清晰报错：
 - `samples.tsv` 是否存在
 - 表头是否包含必须列
@@ -83,7 +119,7 @@ sampleB	/path/to/sampleB.R1.fastp.gz	/path/to/sampleB.R2.fastp.gz
 - 重复 `sample_id`
 - FASTQ 文件是否存在
 - Slurm task id 是否越界
-- 输出目录是否已存在（默认不覆盖，需 `--force`）
+- 输出目录若已存在会自动删除并覆盖（同一样本重跑时直接覆盖旧结果）
 
 ---
 
@@ -101,7 +137,7 @@ python3 run_survirus_pipeline.py \
   --surveyor surveyor.py \
   --bwa /path/to/bwa-mem2 \
   --samtools samtools \
-  --dust dust
+  --dust /path/to/sdust
 ```
 
 ### 方法 B：使用便捷脚本
@@ -193,7 +229,6 @@ logs/
 - `--task-id`：手动指定样本行号（本地调试）
 - `--threads`：每样本线程数
 - `--bwa`：bwa-mem2 路径（默认 `bwa-mem2`）
-- `--force`：允许复用已存在样本输出目录
 - `--dry-run`：只打印命令不执行
 
 `submit_survirus_array.sh` 关键参数：
@@ -241,3 +276,47 @@ cmake -DCMAKE_BUILD_TYPE=Release . && make
 - 不大规模改动核心算法
 - 将批量输入、并行调度、报错友好性放到外层脚本中实现
 - 方便初学者快速上手和维护
+
+---
+
+## 11. 常见报错与处理
+
+### 报错：`Classic bwa not found: bwa ...`
+
+这是旧版本脚本的报错（当时还依赖经典 `bwa`）。当前版本已改为直接使用 `bwa-mem2`，并且：
+- 若你误传了 `--bwa bwa`，但系统里有 `bwa-mem2`，会自动切换；
+- 若系统找不到 `bwa-mem2`，请显式指定路径：
+
+```bash
+export BWA_MEM2=/data/person/wup/liusy/software/bwa-mem2-2.2.1_x64-linux/bwa-mem2
+sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
+```
+
+### 报错：`extract_clips: No such file or directory` / `reads_categorizer: No such file or directory`
+
+说明 SurVirus C++ 可执行程序未编译完整（或 `surveyor.py` 路径不在编译目录内）。请在仓库根目录重新编译：
+
+```bash
+./build_libs.sh
+cmake -DCMAKE_BUILD_TYPE=Release . && make
+```
+
+### 报错：`ERROR! Unable to open ... .bwt.2bit.64`
+
+说明 reference 没有建立 bwa-mem2 索引。请对 host / virus / host_virus 都执行：
+
+```bash
+bwa-mem2 index /path/to/reference.fa
+samtools faidx /path/to/reference.fa
+```
+
+### 报错：`dust: command not found`
+
+本流程默认使用 `sdust`（不是 `dust`）。请指定 sdust 路径，例如：
+
+```bash
+export DUST_EXEC=/data/person/wup/liusy/software/sdust-master/sdust
+sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
+```
+
+说明：当前版本 `surveyor.py` 在检测到 `dust` 不存在且 `sdust` 存在时，会自动切换到 `sdust`。

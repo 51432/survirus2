@@ -1,6 +1,7 @@
 import argparse, os
 import pysam, pyfaidx
 import max_is_calc
+from distutils.spawn import find_executable
 
 cmd_parser = argparse.ArgumentParser(description='SurVirus, a virus integration caller.')
 cmd_parser.add_argument('input_files', help='Input files, separated by a comma.')
@@ -11,7 +12,7 @@ cmd_parser.add_argument('host_and_virus_reference', help='Joint references of ho
 cmd_parser.add_argument('--threads', type=int, default=1, help='Number of threads to be used.')
 cmd_parser.add_argument('--bwa', default='bwa-mem2', help='bwa-mem2 path.')
 cmd_parser.add_argument('--samtools', help='Samtools path.', default='samtools')
-cmd_parser.add_argument('--dust', help='Dust path.', default='dust')
+cmd_parser.add_argument('--dust', help='Dust path.', default='sdust')
 cmd_parser.add_argument('--wgs', action='store_true', help='The reference genome is uniformly covered by reads.'
                                                            'SurVirus needs to sample read pairs, and this option lets'
                                                            'it sample them from all over the genome.')
@@ -26,11 +27,18 @@ cmd_parser.add_argument('--cram-reference', help='Can optionally provide a refer
                                                  'in CRAM.')
 cmd_args = cmd_parser.parse_args()
 
+if cmd_args.dust == 'dust' and find_executable('dust') is None and find_executable('sdust') is not None:
+    print "Warning: dust not found, auto-switching to sdust."
+    cmd_args.dust = 'sdust'
+
 SURVIRUS_PATH = os.path.dirname(os.path.realpath(__file__))
 
 def execute(cmd):
     print "Executing:", cmd
-    os.system(cmd)
+    code = os.system(cmd)
+    if code != 0:
+        print "Command failed:", cmd
+        exit(1)
 
 input_names = cmd_args.input_files.split(',')
 if cmd_args.fq:

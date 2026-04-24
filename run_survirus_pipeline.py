@@ -4,6 +4,7 @@
 import argparse
 import csv
 import os
+import shutil
 import subprocess
 import sys
 from collections import Counter
@@ -13,6 +14,18 @@ DEFAULT_VIRUS = "/data/person/wup/public/liusy_files/reference_genomes/virus/ref
 DEFAULT_HOST_VIRUS = "/data/person/wup/public/liusy_files/reference_genomes/host_virus/reference/host_virus.fa"
 
 REQUIRED_COLUMNS = ("sample_id", "input_R1", "input_R2")
+REQUIRED_BINARIES = (
+    "isolate_relevant_pairs",
+    "isolate_relevant_pairs_fq",
+    "filter_by_qname",
+    "extract_clips",
+    "reads_categorizer",
+    "merge_retained_reads",
+    "build_region-reads_associations",
+    "remapper",
+    "bp_region_consensus_builder",
+    "filter",
+)
 
 
 def fail(msg):
@@ -91,22 +104,73 @@ def select_sample(rows, sample_id=None, array_task_id=None):
     )
 
 
-def ensure_output_dir(path, force=False):
+def ensure_output_dir(path):
     if os.path.exists(path):
-        if not force:
-            fail(
-                f"Output directory already exists: {path}. "
-                "Use --force to reuse the directory."
-            )
-    else:
-        os.makedirs(path)
+        print(f"[WARN] Output directory exists and will be overwritten: {path}")
+        shutil.rmtree(path)
+    os.makedirs(path)
 
 
 def resolve_bwa_exec(user_bwa):
     cmd = f"command -v {user_bwa} >/dev/null 2>&1"
-    if os.system(cmd) != 0:
-        fail(f"bwa-mem2 executable not found: {user_bwa}. Please set --bwa correctly.")
-    return user_bwa
+    if os.system(cmd) == 0:
+        return user_bwa
+
+    # Backward-compatible safety net:
+    # if user still passed "--bwa bwa" but only bwa-mem2 exists, auto-fallback.
+    if user_bwa == "bwa" and os.system("command -v bwa-mem2 >/dev/null 2>&1") == 0:
+        print("[WARN] '--bwa bwa' not found. Auto-switching to detected bwa-mem2.", file=sys.stderr)
+        return "bwa-mem2"
+
+    fail(
+        f"bwa-mem2 executable not found: {user_bwa}. "
+        "Please set --bwa to a valid bwa-mem2 path (or export BWA_MEM2)."
+    )
+
+
+def resolve_dust_exec(user_dust):
+    cmd = f"command -v {user_dust} >/dev/null 2>&1"
+    if os.system(cmd) == 0:
+        return user_dust
+
+    # Backward-compatible safety net:
+    # if user still passed "--dust dust" but only sdust exists, auto-fallback.
+    if user_dust == "dust" and os.system("command -v sdust >/dev/null 2>&1") == 0:
+        print("[WARN] '--dust dust' not found. Auto-switching to detected sdust.", file=sys.stderr)
+        return "sdust"
+
+    fail(
+        f"dust executable not found: {user_dust}. "
+        "Please set --dust to a valid sdust path (or export DUST_EXEC)."
+    )
+
+
+def preflight_runtime_checks(surveyor_path, host_ref, virus_ref, host_virus_ref):
+    if not os.path.exists(surveyor_path):
+        fail(f"surveyor.py not found: {surveyor_path}")
+
+    survirus_root = os.path.dirname(os.path.realpath(surveyor_path))
+    missing_bins = []
+    for name in REQUIRED_BINARIES:
+        p = os.path.join(survirus_root, name)
+        if not (os.path.exists(p) and os.access(p, os.X_OK)):
+            missing_bins.append(p)
+    if missing_bins:
+        fail(
+            "Missing SurVirus compiled binaries (build may be incomplete). Missing: "
+            + ", ".join(missing_bins)
+        )
+
+    for ref in (host_ref, virus_ref, host_virus_ref):
+        if not os.path.exists(ref):
+            fail(f"Reference FASTA not found: {ref}")
+        bwt2 = ref + ".bwt.2bit.64"
+        packed = ref + ".0123"
+        if not (os.path.exists(bwt2) and os.path.exists(packed)):
+            fail(
+                f"bwa-mem2 index missing for reference: {ref}. "
+                f"Expected files: {bwt2} and {packed}. Please run: bwa-mem2 index {ref}"
+            )
 
 
 def main():
@@ -139,9 +203,8 @@ def main():
 
     parser.add_argument("--bwa", default="bwa-mem2", help="bwa-mem2 executable path")
     parser.add_argument("--samtools", default="samtools", help="samtools executable path")
-    parser.add_argument("--dust", default="dust", help="dust executable path")
+    parser.add_argument("--dust", default="sdust", help="sdust executable path")
 
-    parser.add_argument("--force", action="store_true", help="Reuse existing sample output directory")
     parser.add_argument("--dry-run", action="store_true", help="Only print command, do not run")
 
     args = parser.parse_args()
@@ -162,8 +225,10 @@ def main():
 
     os.makedirs(args.outdir, exist_ok=True)
     sample_outdir = os.path.join(args.outdir, sample["sample_id"])
-    ensure_output_dir(sample_outdir, force=args.force)
+    ensure_output_dir(sample_outdir)
     bwa_exec = resolve_bwa_exec(args.bwa)
+    dust_exec = resolve_dust_exec(args.dust)
+    preflight_runtime_checks(args.surveyor, args.host, args.virus, args.host_virus)
 
     logs_dir = os.path.join(args.outdir, "logs")
     os.makedirs(logs_dir, exist_ok=True)
@@ -185,13 +250,14 @@ def main():
         "--samtools",
         args.samtools,
         "--dust",
-        args.dust,
+        dust_exec,
     ]
 
     print(f"[INFO] Selected sample: {sample['sample_id']}")
     print(f"[INFO] Output dir: {sample_outdir}")
     print(f"[INFO] Log file: {log_path}")
     print(f"[INFO] bwa-mem2 engine: {bwa_exec}")
+    print(f"[INFO] dust engine: {dust_exec}")
     print("[INFO] Command:")
     print(" ".join(cmd))
 
