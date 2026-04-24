@@ -193,28 +193,123 @@ sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
 
 ---
 
-## 7. 输出目录结构
+## 7. 输出结果与中间文件（按用途整理）
 
-默认输出目录结构如下：
+下面把 SurVirus 在每个样本目录（如 `results/sampleA/`）里产生的**最终结果**和**中间文件**集中列出来，并说明它们可用于什么后续分析。
+
+### 7.1 顶层目录
 
 ```text
 results/
   logs/
-    sampleA.survirus.log
-    sampleB.survirus.log
-  sampleA/
-    ...（SurVirus 原始输出）
-  sampleB/
-    ...（SurVirus 原始输出）
+    <sample_id>.survirus.log
+  <sample_id>/
+    ...（该样本全部结果 + 中间文件）
 ```
 
-同时 Slurm 也会生成：
+另有 Slurm 标准输出（通常在你提交目录下）：
 
 ```text
 logs/
   slurm-<jobid>_<arrayid>.out
   slurm-<jobid>_<arrayid>.err
 ```
+
+---
+
+### 7.2 每个样本目录中的关键“最终结果文件”
+
+以下文件位于 `results/<sample_id>/`：
+
+- `results.t1.txt`  
+  - **含义**：主结果（默认过滤后保留的整合事件）。  
+  - **可用于**：下游统计（每样本事件数）、队列汇总、做 host/virus 断点注释。
+
+- `results.remapped.t1.txt`  
+  - **含义**：基于 remapped 断点结果的过滤输出版本。  
+  - **可用于**：与 `results.t1.txt` 交叉验证，评估重比对前后事件稳定性。
+
+- `results.discarded.txt`  
+  - **含义**：被过滤掉的候选事件。  
+  - **可用于**：质控审计（为什么被丢弃）、阈值敏感性分析（调 `minClipSize` / `maxSCDist` 后复查）。
+
+- `results.alternative.txt`  
+  - **含义**：候选断点序列在 host 基因组上的替代比对位置（多重匹配线索）。  
+  - **可用于**：评估断点唯一性、识别潜在重复区域假阳性。
+
+---
+
+### 7.3 每个样本目录中的中间文件（建议保留）
+
+- `config.txt`  
+  - **含义**：本次运行参数快照（threads、clip 阈值、read_len 等）。  
+  - **可用于**：复现分析、跨批次参数一致性检查。
+
+- `contig_map`  
+  - **含义**：参考序列 contig 名称与内部 ID 映射。  
+  - **可用于**：解释二进制/内部索引文件中的 contig 编号。
+
+- `log.txt`  
+  - **含义**：`remapper` 阶段标准错误输出。  
+  - **可用于**：排查 remap 异常、低支持度候选的诊断。
+
+- `results.txt`、`results.remapped.txt`  
+  - **含义**：过滤前的原始候选结果。  
+  - **可用于**：自定义过滤策略（自行替换 `filter` 规则）或方法学评估。
+
+- `host_bp_seqs.fa`、`virus_bp_seqs.fa`  
+  - **含义**：每个候选断点的宿主/病毒侧共识序列。  
+  - **可用于**：做 BLAST、motif、微同源（micro-homology）分析。
+
+- `host_bp_seqs.masked.bed`、`virus_bp_seqs.masked.bed`  
+  - **含义**：`sdust` 低复杂度区域掩码结果。  
+  - **可用于**：低复杂度过滤、评估序列复杂度对断点置信度的影响。
+
+- `host_bp_seqs.bam`  
+  - **含义**：断点序列回贴到 host 的比对结果（用于 alternative 位点提取）。  
+  - **可用于**：进一步分析多重定位/重复序列背景。
+
+- `host-side.cs.bam`、`virus-side.cs.bam`  
+  - **含义**：跨 workspace 合并后的 host/virus 侧 reads 比对 BAM（坐标排序）。  
+  - **可用于**：IGV 可视化、支持 reads 深挖。
+
+- `qnames`、`cigars`、`scores.bin`  
+  - **含义**：region-read 关联索引与打分中间数据。  
+  - **可用于**：算法调试与性能剖析（一般用户可不直接使用）。
+
+- `readsx/`  
+  - **内容**：`<event_id>.bam` + `<event_id>.bam.bai`（每个候选事件一个 BAM）。  
+  - **可用于**：按事件做精细人工审阅（最推荐用于 IGV 逐事件验证）。
+
+---
+
+### 7.4 `bam_0/`（FASTQ 模式）中的中间文件清单
+
+当使用 `--fq`（本封装默认）时，样本目录下会有 `bam_0/`。常见文件：
+
+- `stats.txt`：该 workspace 的插入片段上限统计。  
+- `retained-pairs_1.fq`、`retained-pairs_2.fq`：保留下来的候选 read pairs。  
+- `retained-pairs.remapped.bam`、`retained-pairs.remapped.cs.bam`：候选 pairs 回贴 host+virus 的 BAM。  
+- `virus-clips.fa`、`host-clips.fa`：软剪切片段序列（FASTA）。  
+- `virus-clips.bam`、`virus-clips.cs.bam`：virus clips 回贴 host 的 BAM。  
+- `host-clips.bam`、`host-clips.cs.bam`：host clips 回贴 virus 的 BAM。  
+- `virus-anchors.bam`、`virus-anchors.cs.bam`：virus 锚定 reads。  
+- `host-anchors.bam`、`host-anchors.cs.bam`：host 锚定 reads。  
+- `virus-side.fq`、`host-side.fq`：分类后的 virus/host 侧 reads。  
+- `virus-side.bam`、`virus-side.cs.bam`：virus-side 比对结果。  
+- `host-side.bam`、`host-side.cs.bam`：host-side 比对结果。  
+
+> 若输入是 BAM/CRAM 而非 FASTQ，会产生 `bam_0/`, `bam_1/` ... 多个 workspace，结构类似。
+
+---
+
+### 7.5 推荐的后续分析路径
+
+1. **先看最终结果**：`results.t1.txt` 与 `results.remapped.t1.txt`。  
+2. **做质控与误差排查**：结合 `results.discarded.txt`、`results.alternative.txt`、`*.masked.bed`。  
+3. **做可视化验证**：优先使用 `readsx/<event_id>.bam`（按事件最清晰），再结合 `host-side.cs.bam` / `virus-side.cs.bam`。  
+4. **做序列层分析**：使用 `host_bp_seqs.fa`、`virus_bp_seqs.fa`（BLAST / motif / micro-homology）。  
+5. **做可复现记录**：归档 `config.txt`、`contig_map`、`logs/<sample_id>.survirus.log`、`log.txt`。
 
 ---
 
