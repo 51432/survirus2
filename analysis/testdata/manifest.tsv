@@ -1,0 +1,2 @@
+sample_id	subtype	survirus_results_t1	survirus_results_remapped_t1	survirus_results_alternative	rna_expr
+S1	NP	analysis/testdata/sample1.results.t1.txt	analysis/testdata/sample1.results.remapped.t1.txt	analysis/testdata/sample1.results.alternative.txt	analysis/testdata/expression.tsv
