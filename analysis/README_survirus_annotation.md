@@ -21,16 +21,6 @@
 ## 运行
 
 ```bash
-python run_survirus_annotation.py \
-  --results_root /path/to/results \
-  --gene_bed genes.bed \
-  --tss_bed tss.bed \
-  --promoter_bed promoter_2kb.bed \
-  --enhancer_bed enhancers.bed \
-  --hpv_bed hpv_annot.bed \
-  --sample_manifest sample_manifest.tsv \
-  --outdir downstream_annotation
-
 python3 -m analysis.run_analysis \
   --manifest test_manifest.tsv \
   --gene_body_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/gene_body.sorted.bed \
