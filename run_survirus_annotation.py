@@ -243,6 +243,7 @@ def annotate_with_bedtools(df: pd.DataFrame, outdir: Path, gene_bed: Path, tss_b
             uid = parts[3]
             gene_hits.setdefault(uid, []).append(parts[5:])
 
+    nearest_transcript: Dict[str, str] = {}
     nearest_gene: Dict[str, str] = {}
     dist_tss: Dict[str, int] = {}
     with tss_c.open() as f:
@@ -252,7 +253,20 @@ def annotate_with_bedtools(df: pd.DataFrame, outdir: Path, gene_bed: Path, tss_b
                 continue
             uid = parts[3]
             dist_tss[uid] = int(float(parts[-1]))
-            nearest_gene[uid] = parts[8] if len(parts) > 8 else (parts[7] if len(parts) > 7 else "NA")
+
+            # bedtools closest output layout:
+            # A(5 cols) + B(n cols) + distance.
+            # For a 6-col TSS BED:
+            # - B col4(transcript_id) -> closest col9  (0-based index 8)
+            # - B col5(gene_name)     -> closest col10 (0-based index 9)
+            tss_chrom = parts[5] if len(parts) > 5 else "."
+            tss_start = parts[6] if len(parts) > 6 else "-1"
+            transcript = parts[8] if len(parts) > 8 else "NA"
+            gene = parts[9] if len(parts) > 9 else "NA"
+
+            no_hit = (tss_chrom == ".") or (tss_start == "-1") or (transcript == ".") or (gene == ".")
+            nearest_transcript[uid] = "NA" if no_hit else transcript
+            nearest_gene[uid] = "NA" if no_hit else gene
 
     prom_flag: Dict[str, int] = {}
     with prom_c.open() as f:
@@ -280,6 +294,7 @@ def annotate_with_bedtools(df: pd.DataFrame, outdir: Path, gene_bed: Path, tss_b
             virus_map[uid] = (region, seg)
 
     host_gene_list = []
+    nearest_transcript_list = []
     nearest_gene_list = []
     dist_list = []
     cls_list = []
@@ -333,6 +348,7 @@ def annotate_with_bedtools(df: pd.DataFrame, outdir: Path, gene_bed: Path, tss_b
         v_region, v_seg = virus_map.get(uid, ("NA", "NA"))
 
         host_gene_list.append(host_gene)
+        nearest_transcript_list.append(nearest_transcript.get(uid, "NA"))
         nearest_gene_list.append(nearest_gene.get(uid, "NA"))
         dist_list.append(dist_tss.get(uid, -1))
         cls_list.append(cls)
@@ -345,6 +361,7 @@ def annotate_with_bedtools(df: pd.DataFrame, outdir: Path, gene_bed: Path, tss_b
 
     out = df.copy()
     out["host_gene"] = host_gene_list
+    out["nearest_transcript"] = nearest_transcript_list
     out["nearest_gene"] = nearest_gene_list
     out["distance_to_tss"] = dist_list
     out["host_region_class"] = cls_list
@@ -396,7 +413,7 @@ def main() -> None:
         "sample_id", "event_id", "event_uid", "host_chr", "host_pos", "host_strand",
         "virus_contig", "virus_type", "virus_pos", "virus_strand", "supporting_pairs", "split_reads",
         "host_pbs", "coverage", "remap_confirmed", "n_alt_total", "n_alt_extra", "multi_mapping_risk",
-        "high_conf_event", "host_gene", "nearest_gene", "distance_to_tss", "host_region_class",
+        "high_conf_event", "host_gene", "nearest_transcript", "nearest_gene", "distance_to_tss", "host_region_class",
         "host_region_detail", "promoter_flag", "enhancer_flag", "noncoding_flag", "virus_region",
         "virus_gene_segment",
     ]

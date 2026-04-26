@@ -36,7 +36,7 @@ python run_survirus_annotation.py \
 
 ## 输出
 
-- `integration_event_annotation.tsv`（事件级整合注释主表）
+- `integration_event_annotation.tsv`（事件级整合注释主表，含 `nearest_transcript` / `nearest_gene` / `distance_to_tss`）
 - `survirus_host_breakpoints.bed`
 - `survirus_virus_breakpoints.bed`
 - `survirus_annotation.log`
