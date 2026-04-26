@@ -17,6 +17,10 @@ def parse_args():
     p = argparse.ArgumentParser(description="Independent downstream integration analysis step.")
     p.add_argument("--manifest", required=True)
     p.add_argument("--gene_gtf", default="")
+    p.add_argument("--gene_body_bed", default="")
+    p.add_argument("--exon_bed", default="")
+    p.add_argument("--intron_bed", default="")
+    p.add_argument("--cds_bed", default="")
     p.add_argument("--tss_bed", default="")
     p.add_argument("--promoter_bed", default="")
     p.add_argument("--enhancer_bed", default="")
@@ -64,12 +68,15 @@ def compute_high_conf(df: pd.DataFrame, args) -> pd.Series:
 
 
 def build_sample_summary(events: pd.DataFrame, manifest: pd.DataFrame) -> pd.DataFrame:
+    host_regions = ["coding_exon", "noncoding_exon", "intronic", "intergenic", "promoter_proximal", "enhancer_proximal"]
+    virus_regions = ["E1", "E2", "E5", "E6", "E7", "L1", "L2", "URR"]
+
     rows = []
     for _, m in manifest.iterrows():
         sid = m["sample_id"]
         sdf = events[events["sample_id"] == sid]
         if sdf.empty:
-            rows.append({
+            base = {
                 "sample_id": sid,
                 "subtype": m.get("subtype", ""),
                 "has_integration": 0,
@@ -87,9 +94,23 @@ def build_sample_summary(events: pd.DataFrame, manifest: pd.DataFrame) -> pd.Dat
                 "n_events_with_alt_hits": 0,
                 "high_conf_event_count": 0,
                 "remap_confirmation_rate": pd.NA,
-            })
+                "n_exonic": 0,
+                "n_noncoding_total": 0,
+                "dominant_host_region": "NA",
+                "dominant_virus_region": "NA",
+                "virus_region_combo": "NA",
+                "host_region_combo": "NA",
+            }
+            for hr in host_regions:
+                base[f"n_{hr}"] = 0
+            for vr in virus_regions:
+                base[f"n_virus_{vr}"] = 0
+            rows.append(base)
             continue
-        rows.append({
+
+        host_vc = sdf["host_region_class"].value_counts()
+        virus_vc = sdf["virus_region"].value_counts()
+        base = {
             "sample_id": sid,
             "subtype": m.get("subtype", ""),
             "has_integration": 1,
@@ -107,7 +128,18 @@ def build_sample_summary(events: pd.DataFrame, manifest: pd.DataFrame) -> pd.Dat
             "n_events_with_alt_hits": int((sdf["n_alt_extra"] > 0).sum()),
             "high_conf_event_count": int(sdf["high_conf_event"].sum()),
             "remap_confirmation_rate": float(sdf["remap_confirmed"].mean()) if len(sdf) else pd.NA,
-        })
+            "n_exonic": int((sdf["exonic_flag"] == 1).sum()),
+            "n_noncoding_total": int((sdf["noncoding_flag"] == 1).sum()),
+            "dominant_host_region": host_vc.index[0] if not host_vc.empty else "NA",
+            "dominant_virus_region": virus_vc.index[0] if not virus_vc.empty else "NA",
+            "virus_region_combo": ";".join(sorted([x for x in sdf["virus_region"].dropna().astype(str).unique() if x and x != "NA"])) or "NA",
+            "host_region_combo": ";".join(sorted([x for x in sdf["host_region_class"].dropna().astype(str).unique() if x and x != "NA"])) or "NA",
+        }
+        for hr in host_regions:
+            base[f"n_{hr}"] = int((sdf["host_region_class"] == hr).sum())
+        for vr in virus_regions:
+            base[f"n_virus_{vr}"] = int((sdf["virus_region"] == vr).sum())
+        rows.append(base)
     return pd.DataFrame(rows)
 
 
@@ -136,6 +168,10 @@ def main():
         annotated = annotate_events(
             merged,
             gene_gtf=args.gene_gtf,
+            gene_body_bed=args.gene_body_bed,
+            exon_bed=args.exon_bed,
+            intron_bed=args.intron_bed,
+            cds_bed=args.cds_bed,
             tss_bed=args.tss_bed,
             promoter_bed=args.promoter_bed,
             enhancer_bed=args.enhancer_bed,
@@ -154,14 +190,22 @@ def main():
         events = pd.DataFrame(columns=["sample_id", "subtype", "event_uid", "event_id", "host_chr", "host_strand", "host_pos", "virus_contig", "virus_type", "virus_strand", "virus_pos", "supporting_pairs", "split_reads", "host_pbs", "coverage", "remap_confirmed", "n_alt_total", "n_alt_extra", "multi_mapping_risk", "high_conf_event"])
 
     events = ensure_columns(events, [
-        "nearest_gene", "distance_to_tss", "host_region_class", "host_region_detail", "promoter_flag", "enhancer_flag", "noncoding_flag", "virus_region", "virus_gene_segment"
+        "host_gene", "nearest_transcript", "nearest_gene", "distance_to_tss", "host_region_class", "host_region_detail",
+        "promoter_flag", "enhancer_flag", "coding_flag", "exonic_flag", "intronic_flag", "noncoding_flag",
+        "virus_region", "virus_gene_segment"
     ])
 
     sample_summary = build_sample_summary(events, manifest)
     sample_summary.to_csv(os.path.join(args.outdir, "sample_level_integration_summary.tsv"), sep="\t", index=False)
 
     event_cols = [
-        "sample_id", "subtype", "event_uid", "event_id", "host_chr", "host_strand", "host_pos", "virus_contig", "virus_type", "virus_strand", "virus_pos", "supporting_pairs", "split_reads", "host_pbs", "coverage", "remap_confirmed", "n_alt_total", "n_alt_extra", "multi_mapping_risk", "high_conf_event", "nearest_gene", "distance_to_tss", "host_region_class", "host_region_detail", "promoter_flag", "enhancer_flag", "noncoding_flag", "virus_region", "virus_gene_segment"
+        "sample_id", "subtype", "event_uid", "event_id", "host_chr", "host_strand", "host_pos", "virus_contig", "virus_type",
+        "virus_strand", "virus_pos", "supporting_pairs", "split_reads", "host_pbs", "coverage",
+        "remap_confirmed", "n_alt_total", "n_alt_extra", "multi_mapping_risk", "high_conf_event",
+        "host_gene", "nearest_transcript", "nearest_gene", "distance_to_tss",
+        "host_region_class", "host_region_detail", "promoter_flag", "enhancer_flag",
+        "coding_flag", "exonic_flag", "intronic_flag", "noncoding_flag",
+        "virus_region", "virus_gene_segment",
     ]
     events[event_cols].to_csv(os.path.join(args.outdir, "integration_event_annotation.tsv"), sep="\t", index=False)
 
