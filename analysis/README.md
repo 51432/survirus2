@@ -80,3 +80,93 @@ python3 -m analysis.run_analysis \
 - `python >= 3.8`
 - `pandas`
 - `bedtools`（用于 intersect / closest 注释）
+
+## ASCAT purity/ploidy 回填到sample_subtype_metadata.tsv
+### 批量提取 ASCAT purity / ploidy / WGD / GI
+#你可以直接新建脚本：
+
+```bash
+vim extract_ascat_metrics.py
+```
+### 写入：
+```bash
+#!/usr/bin/env python3
+import re
+from pathlib import Path
+import pandas as pd
+
+ascat_root = Path("test/result/variant_calling/ascat")
+rows = []
+
+for metrics_file in ascat_root.glob("*/*.metrics.txt"):
+    pair_id = metrics_file.parent.name
+
+    # 从 TSDX008_vs_NSDX008 提取 tumor sample = TSDX008
+    if "_vs_" in pair_id:
+        sample_id = pair_id.split("_vs_")[0]
+    else:
+        sample_id = pair_id
+
+    try:
+        df = pd.read_csv(metrics_file, sep=r"\s+", engine="python")
+    except Exception as e:
+        print(f"[WARN] failed to read {metrics_file}: {e}")
+        continue
+
+    if df.shape[0] < 1:
+        continue
+
+    r = df.iloc[0].to_dict()
+
+    rows.append({
+        "sample_id": sample_id,
+        "ascat_pair_id": pair_id,
+        "tumor_purity": r.get("purity", pd.NA),
+        "ploidy": r.get("ploidy", pd.NA),
+        "goodness_of_fit": r.get("goodness_of_fit", pd.NA),
+        "WGD": r.get("WGD", pd.NA),
+        "GI": r.get("GI", pd.NA),
+        "LOH": r.get("LOH", pd.NA),
+        "n_segs": r.get("n_segs", pd.NA),
+        "homdel_segs": r.get("homdel_segs", pd.NA),
+        "homdel_fraction": r.get("homdel_fraction", pd.NA),
+        "mode_minA": r.get("mode_minA", pd.NA),
+        "mode_majA": r.get("mode_majA", pd.NA),
+    })
+
+out = pd.DataFrame(rows)
+out = out.sort_values("sample_id")
+out.to_csv("ascat_sample_metrics.tsv", sep="\t", index=False)
+
+print(f"Wrote ascat_sample_metrics.tsv with {out.shape[0]} samples")
+```
+
+### 运行：
+```bash
+python extract_ascat_metrics.py
+```
+得到：ascat_sample_metrics.tsv
+## 把 ASCAT 结果合并进你的 metadata
+假设你的 metadata 是：sample_subtype_metadata.tsv
+
+然后运行：
+```bash
+python - <<'PY'
+import pandas as pd
+
+meta = pd.read_csv("sample_subtype_metadata.tsv", sep="\t")
+ascat = pd.read_csv("ascat_sample_metrics.tsv", sep="\t")
+
+# 如果 metadata 里已有空的 tumor_purity/ploidy，先删掉
+meta = meta.drop(columns=["tumor_purity", "ploidy"], errors="ignore")
+
+out = meta.merge(ascat, on="sample_id", how="left")
+
+out.to_csv("sample_subtype_metadata.with_ascat.tsv", sep="\t", index=False)
+print(out[["sample_id","subtype","tumor_purity","ploidy","WGD","GI"]].head())
+PY
+```
+
+
+
+
