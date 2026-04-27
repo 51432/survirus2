@@ -183,10 +183,10 @@ PY
 ```
 
 ### 最后得到：sample_subtype_metadata.with_ascat.tsv
-|sample_id|subtype|has_wgs|has_wes|has_rna|age_group|tumor|ncat|lymph_node_involvement|lymph_node_ratio|status|os|dfs|stage|ihc_syn|ihc_iga|ihc_cd56|ascat_pair_id|tumor_purity|ploidy|goodness_of_fit|WGD|GI|LOH|n_segs|homdel_segs|homdel_largest|homdel_size|homdel_fraction|mode_minA|mode_majA|tumour_mapd|normal_mapd|n_het_SNP|
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|TSDX001|NP|1|0|1|1|mixed|0|0.0|0.0|||IB1|negative|negative|positive|TSDX001_vs_NSDX001|0.8|1.9414|98.5363|0|0.2715|0.1698|41.0|2.0|232677.0|264852.0|0.0001|1.0|1.0|100kb=0.1475|1kb=0|832171.0|
-|TSDX002|ES|1|0|1|1|pure|1|0.0|0.0|||IB2|positive|positive|positive|TSDX002_vs_NSDX002|0.58|2.0219|97.1364|0|0.0802|0.0107|68.0|2.0|535503.0|864658.0|0.0003|1.0|1.0|5kb=0.4724|1kb=0|825467.0|
+| sample_id | subtype | has_wgs | has_wes | has_rna | age_group | tumor | ncat | lymph_node_involvement | lymph_node_ratio | status | os | dfs | stage | ihc_syn | ihc_iga | ihc_cd56 | ascat_pair_id | tumor_purity | ploidy | goodness_of_fit | WGD | GI | LOH | n_segs | homdel_segs | homdel_largest | homdel_size | homdel_fraction | mode_minA | mode_majA | tumour_mapd | normal_mapd | n_het_SNP |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TSDX001 | NP | 1 | 0 | 1 | 1 | mixed | 0 | 0.0 | 0.0 | | | IB1 | negative | negative | positive | TSDX001_vs_NSDX001 | 0.8 | 1.9414 | 98.5363 | 0 | 0.2715 | 0.1698 | 41.0 | 2.0 | 232677.0 | 264852.0 | 0.0001 | 1.0 | 1.0 | 100kb=0.1475 | 1kb=0 | 832171.0 |
+| TSDX002 | ES | 1 | 0 | 1 | 1 | pure | 1 | 0.0 | 0.0 | | | IB2 | positive | positive | positive | TSDX002_vs_NSDX002 | 0.58 | 2.0219 | 97.1364 | 0 | 0.0802 | 0.0107 | 68.0 | 2.0 | 535503.0 | 864658.0 | 0.0003 | 1.0 | 1.0 | 5kb=0.4724 | 1kb=0 | 825467.0 |
 
 
 
