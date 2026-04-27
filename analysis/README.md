@@ -225,29 +225,29 @@ python3 viral_retention_from_virus_side.py \
   --outdir hpv_retention_virus_side_out
 
 ```
-### 最后得到文件包括
+#### 最后得到文件包括
 
 hpv_idxstats.virus_side.tsv ： 每个样本每个 contig 的 mapped reads、用于判断主 HPV 型别。
 hpv_retention_pattern.virus_side.tsv：每行是一个样本的一个 HPV 区域
 hpv_region_depth.virus_side.tsv：每行是一个样本的一个 HPV 型别
 
-### 画figure 3a的图
+**画figure 3a的图**
 你现在至少需要这 5 个输入：
 
 sample_subtype_metadata.with_ascat.tsv
-### 提供 sample_id, subtype, WGD 等
+**提供 sample_id, subtype, WGD 等**
 
 sample_level_integration_summary.tsv
-### 提供 high_conf_event_count, remap_confirmation_rate, major_hpv_type 等
+**提供 high_conf_event_count, remap_confirmation_rate, major_hpv_type 等**
 
 integration_event_annotation.tsv
-### 提供 host_region_class, virus_gene_segment 等事件级断点信息
+**提供 host_region_class, virus_gene_segment 等事件级断点信息**
 
 hpv_region_depth.virus_side.tsv
-### viral_retention_from_virus_side.py 的输出，提供每个病毒区域的相对覆盖度
+**viral_retention_from_virus_side.py 的输出，提供每个病毒区域的相对覆盖度**
 
 hpv_retention_pattern.virus_side.tsv
-### viral_retention_from_virus_side.py 的输出，提供 E6_retained/E7_retained 等标签
+**viral_retention_from_virus_side.py 的输出，提供 E6_retained/E7_retained 等标签**
 
 再运行
 ```bash
