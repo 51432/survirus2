@@ -199,5 +199,58 @@ PY
 
 
 
+# 病毒片段保留模式(E6/E7保留型、全长型、、)
+```bash
+cd /data/person/wup/liusy/wgs/scripts/survirus
+python3 viral_retention_from_virus_side.py \
+  --results_root /data/person/wup/liusy/wgs/results/integration \
+  --hpv_bed /data/person/wup/public/liusy_files/reference_genomes/virus/annotation/gff/hpv_annotation_simple.survirus.bed \
+  --samples TSDX001 TSDX002 TSDX003 TSDX004 TSDX005 TSDX006 TSDX007 TSDX008 TSDX009 TSDX010 TSDX011 TSDX014 TSDX017 TSDX018 TSDX019 TSDX025 \
+  --outdir hpv_retention_virus_side_out \
+  --top_only
+```
+### 最后得到文件包括
+
+hpv_idxstats.virus_side.tsv ： 每个样本每个 contig 的 mapped reads、用于判断主 HPV 型别。
+hpv_retention_pattern.virus_side.tsv：每行是一个样本的一个 HPV 区域
+hpv_region_depth.virus_side.tsv：每行是一个样本的一个 HPV 型别
+
+### 画figure 3a的图
+你现在至少需要这 5 个输入：
+
+sample_subtype_metadata.with_ascat.tsv
+### 提供 sample_id, subtype, WGD 等
+
+sample_level_integration_summary.tsv
+### 提供 high_conf_event_count, remap_confirmation_rate, major_hpv_type 等
+
+integration_event_annotation.tsv
+### 提供 host_region_class, virus_gene_segment 等事件级断点信息
+
+hpv_region_depth.virus_side.tsv
+### viral_retention_from_virus_side.py 的输出，提供每个病毒区域的相对覆盖度
+
+hpv_retention_pattern.virus_side.tsv
+### viral_retention_from_virus_side.py 的输出，提供 E6_retained/E7_retained 等标签
+
+```bash
+cd /data/person/wup/liusy/wgs/scripts/survirus/figures/3a
+python prepare_figure3A_tables.py \
+  --metadata sample_subtype_metadata.with_ascat.tsv \
+  --sample_summary analysis_test_out_full/sample_level_integration_summary.tsv \
+  --event_annotation analysis_test_out_full/integration_event_annotation.tsv \
+  --region_depth hpv_retention_virus_side_out/hpv_region_depth.virus_side.tsv \
+  --retention_pattern hpv_retention_virus_side_out/hpv_retention_pattern.virus_side.tsv \
+  --outdir figure3A_tables \
+  --drop_na_subtype
+```bash
+
+
+
+
+
+
+
+
 
 
