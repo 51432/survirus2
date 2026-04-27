@@ -18,6 +18,13 @@
 - `--enhancer_bed`（可选）
 - `--hpv_bed`
 
+## 样本输入格式如下：test_manifest.tsv
+
+| sample_id | survirus_results_t1 | survirus_results_remapped_t1 | survirus_results_alternative | subtype |
+| --- | --- | --- | --- | --- |
+| TSDX001 | /data/person/wup/liusy/wgs/results/integration/TSDX001/results.t1.txt | /data/person/wup/liusy/wgs/results/integration/TSDX001/results.remapped.t1.txt | /data/person/wup/liusy/wgs/results/integration/TSDX001/results.alternative.txt | NP |
+| TSDX002 | /data/person/wup/liusy/wgs/results/integration/TSDX002/results.t1.txt | /data/person/wup/liusy/wgs/results/integration/TSDX002/results.remapped.t1.txt | /data/person/wup/liusy/wgs/results/integration/TSDX002/results.alternative.txt | ES |
+
 ## 运行
 
 ```bash
