@@ -200,6 +200,14 @@ PY
 
 
 # 病毒片段保留模式(E6/E7保留型、全长型、、)
+先准备sample_major_hpv_type.tsv，
+从你的 sample_level_integration_summary.tsv 提取：
+```bash
+awk 'BEGIN{FS=OFS="\t"} NR==1{for(i=1;i<=NF;i++){if($i=="sample_id")s=i;if($i=="major_hpv_type")h=i}; print "sample_id","major_hpv_type"; next} {print $s,$h}' \
+/data/person/wup/liusy/wgs/scripts/surviurs/analysis_test_out_full/sample_level_integration_summary.tsv \
+> sample_major_hpv_type.tsv
+```
+
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/survirus
 python3 viral_retention_from_virus_side.py \
@@ -208,6 +216,14 @@ python3 viral_retention_from_virus_side.py \
   --samples TSDX001 TSDX002 TSDX003 TSDX004 TSDX005 TSDX006 TSDX007 TSDX008 TSDX009 TSDX010 TSDX011 TSDX014 TSDX017 TSDX018 TSDX019 TSDX025 \
   --outdir hpv_retention_virus_side_out \
   --top_only
+
+python3 viral_retention_from_virus_side.py \
+  --results_root /data/person/wup/liusy/wgs/results/integration \
+  --hpv_bed /data/person/wup/public/liusy_files/reference_genomes/virus/annotation/gff/hpv_annotation_simple.survirus.bed \
+  --sample_hpv_type_map sample_major_hpv_type.tsv \
+  --samples TSDX001 TSDX002 TSDX003 TSDX004 TSDX005 TSDX006 TSDX007 TSDX008 TSDX009 TSDX010 TSDX011 TSDX014 TSDX017 TSDX018 TSDX019 TSDX025 \
+  --outdir hpv_retention_virus_side_out
+
 ```
 ### 最后得到文件包括
 
@@ -233,19 +249,33 @@ hpv_region_depth.virus_side.tsv
 hpv_retention_pattern.virus_side.tsv
 ### viral_retention_from_virus_side.py 的输出，提供 E6_retained/E7_retained 等标签
 
+再运行
 ```bash
-cd /data/person/wup/liusy/wgs/scripts/survirus/figures/3a
-python prepare_figure3A_tables.py \
-  --metadata sample_subtype_metadata.with_ascat.tsv \
-  --sample_summary analysis_test_out_full/sample_level_integration_summary.tsv \
-  --event_annotation analysis_test_out_full/integration_event_annotation.tsv \
-  --region_depth hpv_retention_virus_side_out/hpv_region_depth.virus_side.tsv \
-  --retention_pattern hpv_retention_virus_side_out/hpv_retention_pattern.virus_side.tsv \
-  --outdir figure3A_tables \
+cd /data/person/wup/liusy/wgs/scripts/figures/3a
+python3 prepare_figure3A_tables.py \
+  --metadata /data/person/wup/liusy/sarek/sample_subtype_metadata.with_ascat.tsv \
+  --sample_summary  /data/person/wup/liusy/wgs/scripts/survirus/analysis_test_out_full/sample_level_integration_summary.tsv \
+  --event_annotation  /data/person/wup/liusy/wgs/scripts/survirus/analysis_test_out_full/integration_event_annotation.tsv \
+  --region_depth  /data/person/wup/liusy/wgs/scripts/survirus/hpv_retention_virus_side_out/hpv_region_depth.virus_side.tsv \
+  --retention_pattern  /data/person/wup/liusy/wgs/scripts/survirus/hpv_retention_virus_side_out/hpv_retention_pattern.virus_side.tsv \
+  --outdir ./ \
   --drop_na_subtype
+
+```
+
+得到文件
+figure3A_plot_table.tsv
+figure3A_host_region_prop.tsv
+figure3A_virus_breakpoint_prop.tsv
+figure3A_viral_retention_depth.tsv
+figure3A_viral_retention_flags.tsv
+
+运行画图脚本
+
 ```bash
-
-
+Rscript plot_figure3A_complexheatmap.R
+```
+输出：Figure3A_HPV_feature_overview.pdf
 
 
 
