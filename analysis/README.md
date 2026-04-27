@@ -155,7 +155,13 @@ python extract_ascat_metrics.py
 | TSDX003   | TSDX003_vs_NSDX003         | 0.95         | 1.9122 | 99.818         | 0   | 0.1142 | 0.1037 | 46     | 0           | 0              | 0.0         | 1               | 1         | 1          | 100kb=0.2484        | 1kb=0       | 833788    |
 
 ## 把 ASCAT 结果合并进你的 metadata
-假设你的 metadata 是：sample_subtype_metadata.tsv
+### 假设你的 metadata 是：sample_subtype_metadata.tsv
+|sample_id|subtype|has_wgs|has_wes|has_rna|tumor_purity|ploidy|age_group|tumorncat|lymph_node_involvement|lymph_node_ratio|status|os|dfs|stage|ihc_syn|ihc_iga|ihc_cd56|
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|TSDX001|NP|1|0|1||1|mixed|0|0|0|NA|NA|NA|IB1|negative|negative|positive|
+|TSDX002|ES|1|0|1||1|pure|1|0|0|NA|NA|NA|IB2|positive|positive|positive|
+|TSDX003|ES|1|0|1||1|pure|0|0|0|NA|1133.7|NA|IIA|positive|positive|negative|
+|TSDX004|ES|1|0|1||1|pure|0|0|0|NA|071.33333333|71.33333333|IB1|positive|positive|positive|
 
 然后运行：
 ```bash
