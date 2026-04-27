@@ -284,6 +284,33 @@ Rscript plot_figure3A_complexheatmap.R
 ```
 输出：Figure3A_HPV_feature_overview.pdf
 
+### 画figure 3B：三分型的 HPV 特征全景图
+再运行
+```bash
+cd /data/person/wup/liusy/wgs/scripts/figures/3b
+Rscript plot_Figure3B_driver_oncoprint.R
+```
+
+### 画figure 3S2-3个体的突变情况
+再运行
+```bash
+cd /data/person/wup/liusy/wgs/scripts/figures/3b
+#画驱动突变基因的oncoplot
+Rscript plot_Figure3B_driver_oncoprint.R
+#画两个个体病例卡片式表格：左边放突变型样本 TSDX025，右边放 POLE 超突变样本
+Rscript plot_FigureS3B_individual_driver_tables.R
+#画 POLE 超突变样本的突变summary figure
+Rscript plot_FigureS3B_individual_driver_tables.R
+
+```
+
+
+
+
+
+
+
+
 
 
 
