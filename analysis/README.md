@@ -273,6 +273,7 @@ figure3A_viral_retention_flags.tsv
 运行画图脚本
 conda activate rplot
 ```bash
+conda activate rplot
 Rscript plot_figure3A_complexheatmap.R
 ```
 输出：Figure3A_HPV_feature_overview.pdf
