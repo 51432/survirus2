@@ -145,7 +145,14 @@ print(f"Wrote ascat_sample_metrics.tsv with {out.shape[0]} samples")
 ```bash
 python extract_ascat_metrics.py
 ```
-得到：ascat_sample_metrics.tsv
+### 得到：ascat_sample_metrics.tsv
+
+|sample_id|ascat_pair_id|tumor_purity|ploidy|goodness_of_fit|WGD|GI|LOH|n_segs|homdel_segs|homdel_largest|homdel_size|homdel_fraction|mode_minA|mode_majA|tumour_mapd|normal_mapd|n_het_SNP|
+|HP_tumor|HP_tumor_vs_HP_normal|0.68|1.9718|99.8811|0|0.1108|0.0858|39|2136712|177319|0.0001|1|1|5kb=0.0293|500bp=0|836821|
+|TSDX001|TSDX001_vs_NSDX001|0.8|1.9414|98.5363|0|0.2715|0.1698|41|2|232677|264852|0.0001|1|1|100kb=0.1475|1kb=0|832171|
+|TSDX002|TSDX002_vs_NSDX002|0.58|2.0219|97.1364|0|0.0802|0.0107|68|2|535503|864658|0.0003|1|1|5kb=0.4724|1kb=0|825467|
+|TSDX003|TSDX003_vs_NSDX003|0.95|1.9122|99.818|0|0.1142|0.1037|46|0|00|0.0|1|1|100kb=0.2484|1kb=0|833788|
+
 ## 把 ASCAT 结果合并进你的 metadata
 假设你的 metadata 是：sample_subtype_metadata.tsv
 
