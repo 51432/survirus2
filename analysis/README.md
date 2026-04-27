@@ -40,6 +40,8 @@ python3 -m analysis.run_analysis \
   --hpv_bed /data/person/wup/public/liusy_files/reference_genomes/virus/annotation/gff/hpv_annotation_simple.survirus.bed \
   --outdir analysis_test_out_full
 
+nohup python3 -m analysis.run_analysis --manifest test_manifest.tsv --gene_body_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/gene_body.sorted.bed --exon_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/exons.sorted.bed --intron_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/introns.sorted.bed --cds_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/cds.sorted.bed --tss_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/tss.sorted.bed --promoter_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/promoter_2kb.sorted.bed --enhancer_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/enhancers.cCRE_ELS.hg38.sorted.bed --hpv_bed /data/person/wup/public/liusy_files/reference_genomes/virus/annotation/gff/hpv_annotation_simple.survirus.bed --outdir analysis_test_out_full > run_analysis.log 2>&1 &
+
 ```
 
 `sample_manifest` 可选（仅需 `sample_id` 列）；未提供时自动扫描 `results_root` 下所有子目录。
