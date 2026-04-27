@@ -271,7 +271,7 @@ figure3A_viral_retention_depth.tsv
 figure3A_viral_retention_flags.tsv
 
 运行画图脚本
-
+conda activate rplot
 ```bash
 Rscript plot_figure3A_complexheatmap.R
 ```
