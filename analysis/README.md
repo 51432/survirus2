@@ -28,6 +28,7 @@
 ## 运行
 
 ```bash
+cd suevirus
 python3 -m analysis.run_analysis \
   --manifest test_manifest.tsv \
   --gene_body_bed /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/gene_body.sorted.bed \
