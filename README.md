@@ -99,14 +99,14 @@ echo -e "sample_id\tinput_R1\tinput_R2" > "$OUTPUT_FILE"
 declare -A samples
 
 # 遍历所有 .R1.fastp.gz 文件
-for r1_file in "$DATA_DIR"/*.R1.fastp.gz; do
+for r1_file in "$DATA_DIR"/*.R1.fastq.gz; do
     # 获取文件名（不含路径）
     basename=$(basename "$r1_file")
-    # 提取样本ID（去掉 .R1.fastp.gz）
-    sample_id=${basename%.R1.fastp.gz}
+    # 提取样本ID（去掉 .R1.fastq.gz）
+    sample_id=${basename%.R1.fastq.gz}
     
     # 构建对应的R2文件路径
-    r2_file="$DATA_DIR/${sample_id}.R2.fastp.gz"
+    r2_file="$DATA_DIR/${sample_id}.R2.fastq.gz"
     
     # 检查R2文件是否存在
     if [[ -f "$r2_file" ]]; then
