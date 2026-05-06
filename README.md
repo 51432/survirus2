@@ -30,6 +30,11 @@
 ## 2.1 编译 C++ 程序
 
 ```bash
+cd 
+/data/person/wup/liusy/wgs/scripts/survirus2
+```
+
+```bash
 ./build_libs.sh
 ```
 
