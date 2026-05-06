@@ -160,12 +160,15 @@ N=$(( $(wc -l < samples.tsv) - 1 ))
 
 ```bash
 sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
+# WGS 数据请追加 --wgs
+sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results --wgs
 ```
 
 说明：
 - `SLURM_ARRAY_TASK_ID` 为 1-based，对应 `samples.tsv` 数据行（不含表头）
 - `%8` 表示最大并发 8 个任务，请根据集群情况调整
 - 每个任务只处理 1 个样本
+- WES/捕获测序可不加 `--wgs`；WGS 数据建议加 `--wgs` 以匹配 SurVirus README 的推荐参数
 - 可通过环境变量指定 bwa-mem2 路径：`BWA_MEM2=/path/to/bwa-mem2 sbatch ...`
 
 ### 6.3 推荐：按当前可用资源自动调优提交（共享集群友好）
@@ -179,6 +182,9 @@ sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
 
 # 使用 1/2 空闲 CPU（更激进）
 ./submit_survirus_array.sh --samples samples.tsv --outdir results --fraction 2
+
+# WGS 数据（自动调优脚本也支持 --wgs）
+./submit_survirus_array.sh --samples samples.tsv --outdir results --wgs
 
 # 自定义每任务线程和内存
 ./submit_survirus_array.sh \
@@ -325,12 +331,14 @@ logs/
 - `--threads`：每样本线程数
 - `--bwa`：bwa-mem2 路径（默认 `bwa-mem2`）
 - `--dry-run`：只打印命令不执行
+- `--wgs`：将 `--wgs` 透传给 `surveyor.py`（WGS 数据建议开启；WES/捕获通常不需要）
 
 `submit_survirus_array.sh` 关键参数：
 - `--fraction`：最多使用当前空闲 CPU 的 `1/N`（推荐 2 或 3）
 - `--threads-per-task`：每个样本任务申请 CPU 核数
 - `--mem-gb`：每个样本任务内存
 - `--max-parallel`：手动上限（防止并发过高）
+- `--wgs`：提交时自动把 `--wgs` 传给 `run_survirus_array.slurm`
 
 ---
 

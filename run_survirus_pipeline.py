@@ -205,6 +205,7 @@ def main():
     parser.add_argument("--samtools", default="samtools", help="samtools executable path")
     parser.add_argument("--dust", default="sdust", help="sdust executable path")
 
+    parser.add_argument("--wgs", action="store_true", help="Pass --wgs to surveyor.py for whole-genome sequencing (WGS) input")
     parser.add_argument("--dry-run", action="store_true", help="Only print command, do not run")
 
     args = parser.parse_args()
@@ -253,11 +254,15 @@ def main():
         dust_exec,
     ]
 
+    if args.wgs:
+        cmd.append("--wgs")
+
     print(f"[INFO] Selected sample: {sample['sample_id']}")
     print(f"[INFO] Output dir: {sample_outdir}")
     print(f"[INFO] Log file: {log_path}")
     print(f"[INFO] bwa-mem2 engine: {bwa_exec}")
     print(f"[INFO] dust engine: {dust_exec}")
+    print(f"[INFO] WGS mode: {args.wgs}")
     print("[INFO] Command:")
     print(" ".join(cmd))
 

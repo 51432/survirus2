@@ -11,7 +11,7 @@
 set -euo pipefail
 
 # Usage:
-#   sbatch --array=1-N%K run_survirus_array.slurm samples.tsv results
+#   sbatch --array=1-N%K run_survirus_array.slurm samples.tsv results [--wgs]
 #   (Recommended) use submit_survirus_array.sh for resource-aware auto tuning.
 #
 # Notes:
@@ -20,6 +20,12 @@ set -euo pipefail
 
 SAMPLES="${1:-samples.tsv}"
 OUTDIR="${2:-results}"
+WGS_FLAG="${3:-}"
+
+if [[ -n "$WGS_FLAG" && "$WGS_FLAG" != "--wgs" ]]; then
+  echo "[ERROR] Third argument must be --wgs (or omitted), got: $WGS_FLAG" >&2
+  exit 1
+fi
 
 mkdir -p logs
 
@@ -32,4 +38,5 @@ python3 run_survirus_pipeline.py \
   --surveyor "surveyor.py" \
   --bwa "${BWA_MEM2:-bwa-mem2}" \
   --samtools "samtools" \
-  --dust "${DUST_EXEC:-sdust}"
+  --dust "${DUST_EXEC:-sdust}" \
+  ${WGS_FLAG:+--wgs}
