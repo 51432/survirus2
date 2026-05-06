@@ -17,6 +17,7 @@ Options:
   --threads-per-task N      cpus per sample task (default: 6)
   --mem-gb N                memory per task in GB (default: 32)
   --max-parallel N          hard cap for array concurrency (optional)
+  --wgs                     pass --wgs to SurVirus (for whole-genome sequencing)
   --dry-run                 print computed sbatch command, do not submit
 
 Examples:
@@ -33,6 +34,7 @@ THREADS=6
 MEM_GB=32
 MAX_PARALLEL=0
 DRY_RUN=0
+WGS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -43,6 +45,7 @@ while [[ $# -gt 0 ]]; do
     --threads-per-task) THREADS="$2"; shift 2 ;;
     --mem-gb) MEM_GB="$2"; shift 2 ;;
     --max-parallel) MAX_PARALLEL="$2"; shift 2 ;;
+    --wgs) WGS=1; shift ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "[ERROR] Unknown arg: $1" >&2; usage; exit 1 ;;
@@ -98,6 +101,10 @@ CMD=(
   "$SAMPLES"
   "$OUTDIR"
 )
+
+if (( WGS == 1 )); then
+  CMD+=("--wgs")
+fi
 
 echo "[INFO] samples        : $NUM_SAMPLES"
 echo "[INFO] partitions     : $PARTITIONS"
