@@ -167,9 +167,11 @@ N=$(( $(wc -l < samples.tsv) - 1 ))
 ### 6.2 提交任务
 
 ```bash
-sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results
+sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv /data/person/wup/public/liusy_files/sccc/survirus
+```
+```bash
 # WGS 数据请追加 --wgs
-sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv results --wgs
+sbatch --array=1-${N}%8 run_survirus_array.slurm samples.tsv /data/person/wup/public/liusy_files/sccc/survirus --wgs
 ```
 
 说明：
