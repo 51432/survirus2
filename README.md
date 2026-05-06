@@ -31,6 +31,9 @@
 
 ```bash
 ./build_libs.sh
+```
+
+```bash
 cmake -DCMAKE_BUILD_TYPE=Release . && make
 ```
 
