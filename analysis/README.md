@@ -206,7 +206,7 @@ PY
 从你的 sample_level_integration_summary.tsv 提取：
 ```bash
 awk 'BEGIN{FS=OFS="\t"} NR==1{for(i=1;i<=NF;i++){if($i=="sample_id")s=i;if($i=="major_hpv_type")h=i}; print "sample_id","major_hpv_type"; next} {print $s,$h}' \
-/data/person/wup/liusy/wgs/scripts/surviurs/analysis_test_out_full/sample_level_integration_summary.tsv \
+/data/person/wup/liusy/wgs/scripts/survirus/analysis_test_out_full/sample_level_integration_summary.tsv \
 > sample_major_hpv_type.tsv
 ```
 
