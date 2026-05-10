@@ -209,23 +209,45 @@ awk 'BEGIN{FS=OFS="\t"} NR==1{for(i=1;i<=NF;i++){if($i=="sample_id")s=i;if($i=="
 /data/person/wup/liusy/wgs/scripts/survirus/analysis_test_out_full/sample_level_integration_summary.tsv \
 > sample_major_hpv_type.tsv
 ```
-
+** retained 的阈值可以调整**
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/survirus
 python3 viral_retention_from_virus_side.py \
   --results_root /data/person/wup/liusy/wgs/results/integration \
   --hpv_bed /data/person/wup/public/liusy_files/reference_genomes/virus/annotation/gff/hpv_annotation_simple.survirus.bed \
-  --samples TSDX001 TSDX002 TSDX003 TSDX004 TSDX005 TSDX006 TSDX007 TSDX008 TSDX009 TSDX010 TSDX011 TSDX014 TSDX017 TSDX018 TSDX019 TSDX025 \
+  --sample_hpv_type_map sample_major_hpv_type.tsv \
+  --samples TSDX001 TSDX003 TSDX004 TSDX005 TSDX006 TSDX007 TSDX008 TSDX009 TSDX010 TSDX011 TSDX014 TSDX017 TSDX018 TSDX019 TSDX025 \
   --outdir hpv_retention_virus_side_out \
-  --top_only
+--min_mapped_reads 30 \
+--retained_rel_depth 0.3 \
+--retained_cov_frac 0.5 \
+--lost_rel_depth 0.1 \
+--lost_cov_frac 0.1
 
 python3 viral_retention_from_virus_side.py \
-  --results_root /data/person/wup/liusy/wgs/results/integration \
+  --results_root /data/person/wup/public/liusy_files/sccc/survirus \
   --hpv_bed /data/person/wup/public/liusy_files/reference_genomes/virus/annotation/gff/hpv_annotation_simple.survirus.bed \
   --sample_hpv_type_map sample_major_hpv_type.tsv \
-  --samples TSDX001 TSDX002 TSDX003 TSDX004 TSDX005 TSDX006 TSDX007 TSDX008 TSDX009 TSDX010 TSDX011 TSDX014 TSDX017 TSDX018 TSDX019 TSDX025 \
-  --outdir hpv_retention_virus_side_out
+  --samples TSDE022 XHS_tumor TSDX002 TJS_tumor TSDE017 HP_tumor TSDE016 TSDE023 TJS_normal CXF_tumor TSDE020 TSDE021 TSDE024 \
+  --outdir hpv_retention_virus_side_out2 \
+--min_mapped_reads 30 \
+--retained_rel_depth 0.3 \
+--retained_cov_frac 0.5 \
+--lost_rel_depth 0.1 \
+--lost_cov_frac 0.1
 
+#软链接合并跑，软链接在这/data/person/wup/liusy/wgs/scripts/survirus/merged_results
+python3 viral_retention_from_virus_side.py \
+  --results_root /data/person/wup/liusy/wgs/scripts/survirus/merged_results \
+  --hpv_bed /data/person/wup/public/liusy_files/reference_genomes/virus/annotation/gff/hpv_annotation_simple.survirus.bed \
+  --sample_hpv_type_map sample_major_hpv_type.tsv \
+  --samples TSDX001 TSDX003 TSDX004 TSDX005 TSDX006 TSDX007 TSDX008 TSDX009 TSDX010 TSDX011 TSDX014 TSDX017 TSDX018 TSDX019 TSDX025 TSDE022 XHS_tumor TSDX002 TJS_tumor TSDE017 HP_tumor TSDE016 TSDE023 TJS_normal CXF_tumor TSDE020 TSDE021 TSDE024 \
+  --outdir hpv_retention_virus_side_out \
+  --min_mapped_reads 30 \
+  --retained_rel_depth 0.3 \
+  --retained_cov_frac 0.5 \
+  --lost_rel_depth 0.1 \
+  --lost_cov_frac 0.1
 ```
 #### 最后得到文件包括
 
