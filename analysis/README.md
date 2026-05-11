@@ -317,12 +317,12 @@ Rscript plot_Figure3B_driver_oncoprint.R
 ### 画figure 3C：三分型的基因组特征全景图（driver gene mutation & CNV/CNA & SV）
 ComplexHeatmap + grid 复现你给的那种“driver gene summary track”图：上方基因名、Status、Gain/loss function，中间 stacked bar，下方突变频率、No. mutated、Biallelic、SV/CNA driver、Cluster feature。
 它先以 MAF 为核心出图；ASCAT / CNVkit / Manta 我给了接口，后面你只需要准备对应 manifest 文件即可接入。
-准备成下面 5 个文件
-/home/xxn/scripts/figures/figure3B_meta.tsv
-/home/xxn/scripts/figures/driver_genes.hg38.bed
-/home/xxn/scripts/figures/ascat_manifest.tsv
-/home/xxn/scripts/figures/cnvkit_manifest.tsv
-/home/xxn/scripts/figures/sv_gene_hits.tsv
+准备成下面 5 个文件：
+/home/xxn/scripts/figures/figure3B_meta.tsv \
+/home/xxn/scripts/figures/driver_genes.hg38.bed \
+/home/xxn/scripts/figures/ascat_manifest.tsv \
+/home/xxn/scripts/figures/cnvkit_manifest.tsv \
+/home/xxn/scripts/figures/sv_gene_hits.tsv \
 somatic.maf
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/figures/3c
