@@ -255,7 +255,7 @@ hpv_idxstats.virus_side.tsv ： 每个样本每个 contig 的 mapped reads、用
 hpv_retention_pattern.virus_side.tsv：每行是一个样本的一个 HPV 区域
 hpv_region_depth.virus_side.tsv：每行是一个样本的一个 HPV 型别
 
-**画figure 3a的图**
+**画figure 3A的图**
 你现在至少需要这 5 个输入：
 
 sample_subtype_metadata.with_ascat.tsv
@@ -308,11 +308,38 @@ Rscript plot_figure3A_complexheatmap.R
 ```
 输出：Figure3A_HPV_feature_overview.pdf
 
-### 画figure 3B：三分型的 HPV 特征全景图
+### 画figure 3B：三分型的 driver gene mutation 特征全景图
 再运行
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/figures/3b
 Rscript plot_Figure3B_driver_oncoprint.R
+```
+### 画figure 3C：三分型的基因组特征全景图（driver gene mutation & CNV/CNA & SV）
+ComplexHeatmap + grid 复现你给的那种“driver gene summary track”图：上方基因名、Status、Gain/loss function，中间 stacked bar，下方突变频率、No. mutated、Biallelic、SV/CNA driver、Cluster feature。
+它先以 MAF 为核心出图；ASCAT / CNVkit / Manta 我给了接口，后面你只需要准备对应 manifest 文件即可接入。
+准备成下面 5 个文件
+/home/xxn/scripts/figures/figure3B_meta.tsv
+/home/xxn/scripts/figures/driver_genes.hg38.bed
+/home/xxn/scripts/figures/ascat_manifest.tsv
+/home/xxn/scripts/figures/cnvkit_manifest.tsv
+/home/xxn/scripts/figures/sv_gene_hits.tsv
+somatic.maf
+```bash
+cd /data/person/wup/liusy/wgs/scripts/figures/3c
+```
+```bash
+find /data/person/wup/liusy/sarek/test/result/variant_calling/ascat \
+  -name "*.segments.txt" > ascat_segments.list
+
+find /data/person/wup/liusy/wgs/scripts/cnvkit/work/cnvkit_tumor/samples \
+  -path "*/call/*call.cns" > cnvkit_call_cns.list
+
+find /data/person/wup/liusy/sarek/test/result/variant_calling/manta \
+  -name "*.vcf.gz" > manta_vcf.list
+```
+
+```bash
+Rscript plot_Figure3C_mut_cnv_sv_summary.R
 ```
 
 ### 画figure 3S2-3个体的突变情况
