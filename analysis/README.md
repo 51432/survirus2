@@ -343,8 +343,9 @@ bash prepare_ascat_manta_genelevel_for_R.sh \
 - 14_gene_manta_summary.long.tsv: 这是后续 R 画 SV affected 轨道用的核心文件
 - 20_R_input_gene_cna_sv_long.tsv: 后续 R 画图的核心文件，它把 ASCAT 的 gene-level CNA/LOH 和 Manta 的 gene-level SV 合并到一起
 
+进入R进行绘图
 ```bash
-Rscript plot_Figure3C_mut_cnv_sv_summary.R
+Rscript plot_Figure3C_driver_landscape_oncoprint.R
 ```
 
 ### 画figure 3S2-3个体的突变情况
