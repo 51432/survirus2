@@ -315,28 +315,33 @@ cd /data/person/wup/liusy/wgs/scripts/figures/3b
 Rscript plot_Figure3B_driver_oncoprint.R
 ```
 ### 画figure 3C：三分型的基因组特征全景图（driver gene mutation & CNV/CNA & SV）
-ComplexHeatmap + grid 复现你给的那种“driver gene summary track”图：上方基因名、Status、Gain/loss function，中间 stacked bar，下方突变频率、No. mutated、Biallelic、SV/CNA driver、Cluster feature。
-它先以 MAF 为核心出图；ASCAT / CNVkit / Manta 我给了接口，后面你只需要准备对应 manifest 文件即可接入。
-准备成下面 5 个文件：
+ComplexHeatmap + grid 复现你给的那种“driver gene summary track”图：上方基因名、Status、Gain/loss function，中间 stacked bar，下方突变频率、No. mutated、Biallelic、SV/CNA driver、Cluster feature。 \
+它先以 MAF 为核心出图；ASCAT / CNVkit / Manta 我给了接口，后面你只需要准备对应 manifest 文件即可接入。 \
+准备成下面 5 个文件： \
 /home/xxn/scripts/figures/figure3B_meta.tsv \
-/home/xxn/scripts/figures/driver_genes.hg38.bed \
+- GENE_BED：/data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/hg38.gencode.v49.basic.protein_coding.gene_body.4col.sorted.bed \
 /home/xxn/scripts/figures/ascat_manifest.tsv \
-/home/xxn/scripts/figures/cnvkit_manifest.tsv \
 /home/xxn/scripts/figures/sv_gene_hits.tsv \
 somatic.maf
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/figures/3c
 ```
+**ascat,manta文件预处理，得到绘图所需的表格**
 ```bash
-find /data/person/wup/liusy/sarek/test/result/variant_calling/ascat \
-  -name "*.segments.txt" > ascat_segments.list
+# 提供ascat数据路径 /data/person/wup/liusy/sarek/test/result/variant_calling/ascat
+# 提供manta数据路径 /data/person/wup/liusy/sarek/test/result/variant_calling/manta
 
-find /data/person/wup/liusy/wgs/scripts/cnvkit/work/cnvkit_tumor/samples \
-  -path "*/call/*call.cns" > cnvkit_call_cns.list
-
-find /data/person/wup/liusy/sarek/test/result/variant_calling/manta \
-  -name "*.vcf.gz" > manta_vcf.list
+bash prepare_ascat_manta_genelevel_for_R.sh \
+  /data/person/wup/liusy/sarek/test/result/variant_calling/ascat \
+  /data/person/wup/liusy/sarek/test/result/variant_calling/manta \
+  /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/hg38.gencode.v49.basic.protein_coding.gene_body.4col.sorted.bed \
+  .
 ```
+### 输出文件说明
+- 00_ascat_manifest.tsv ：每个 ASCAT 结果文件对应一个样本
+- 04_gene_ascat_summary.long.tsv: 这是后续 R 画 CNA / LOH / biallelic 用的核心文件
+- 14_gene_manta_summary.long.tsv: 这是后续 R 画 SV affected 轨道用的核心文件
+- 20_R_input_gene_cna_sv_long.tsv: 后续 R 画图的核心文件，它把 ASCAT 的 gene-level CNA/LOH 和 Manta 的 gene-level SV 合并到一起
 
 ```bash
 Rscript plot_Figure3C_mut_cnv_sv_summary.R
