@@ -364,6 +364,24 @@ Rscript plot_Figure3C_driver_landscape_oncoprint.R
 | **Biallelic (%)** | 该基因在样本中出现双等位基因失活证据的比例，例如突变合并 LOH/缺失或纯合缺失。 |
 | **State / Cluster** | 样本所属的分子分型或聚类类别，用于观察不同亚型的基因改变模式。 |
 | **Genome** | 样本的测序类型，例如 WGS 或 WES，用于标记数据来源。 |
+
+### 整理CNVkit的结果以便可视化
+加入cnv的结果保存在路径/data/person/wup/liusy/wgs/scripts/cnvkit/work/cnvkit_tumor/samples下面
+
+```bash
+cd /data/person/wup/liusy/wgs/scripts/figures/3c
+```
+bash cnvkit_gene_cna_summary.sh <samples_dir> <outdir> <AMP_LOG2> <DEL_LOG2> <HOMDEL_LOG2>
+```bash
+bash cnvkit_gene_cna_summary.sh \
+  /data/person/wup/liusy/wgs/scripts/cnvkit/work/cnvkit_tumor/samples \
+  ./ 0.5 -0.8 -1.5
+```
+**输出文件在当前文件夹**
+- 04_gene_cnvkit_summary.long.tsv
+- 04_gene_cnvkit_events.long.tsv
+- 04_gene_cnvkit_input_files.tsv
+
 ### 画figure 3S2-3个体的突变情况
 再运行
 ```bash
