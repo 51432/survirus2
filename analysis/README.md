@@ -348,10 +348,37 @@ bash prepare_ascat_manta_genelevel_for_R.sh \
   /data/person/wup/liusy/sarek/test/result/variant_calling/manta \
   /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/hg38.gencode.v49.basic.protein_coding.gene_body.4col.sorted.bed \
   .
-
-
-
 ```
+**检查结果是否合理**
+```bash
+column -t -s $'\t' 01b_ascat_sample_cn_baseline.tsv | \
+grep -E 'sample_id|TSDX'
+```
+```bash
+awk -F'\t' '
+NR==1{
+  for(i=1;i<=NF;i++){
+    gsub(/\r/,"",$i)
+    h[$i]=i
+  }
+  next
+}
+NR>1{
+  sample=$h["sample_id"]
+  amp[sample]+=$h["has_amp"]
+  del[sample]+=$h["has_del"]
+  loh[sample]+=$h["has_loh"]
+  hom[sample]+=$h["has_homdel"]
+}
+END{
+  print "sample_id\tAMP\tDEL\tLOH\tHomDel"
+  for(s in amp){
+    print s"\t"amp[s]+0"\t"del[s]+0"\t"loh[s]+0"\t"hom[s]+0
+  }
+}
+' 04_gene_ascat_summary.long.tsv | sort | column -t | grep -E 'sample_id|TSDX'
+```
+
 ### 输出文件说明
 - 00_ascat_manifest.tsv ：每个 ASCAT 结果文件对应一个样本
 - 04_gene_ascat_summary.long.tsv: 这是后续 R 画 CNA / LOH / biallelic 用的核心文件
