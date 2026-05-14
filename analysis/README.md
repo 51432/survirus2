@@ -339,8 +339,8 @@ cd /data/person/wup/liusy/wgs/scripts/figures/3c
 
 MIN_AMP_CN=4 \
 AMP_ABOVE_MODE=2 \
-MODE_MAX_CN=10 \
-MIN_AMP_SEGMENT_BP=100000 \
+MODE_MAX_CN=30 \
+MIN_AMP_SEGMENT_BP=50000 \
 DEL_CN=1 \
 AMP_CUTOFF_OVERRIDES="TSDX009:4" \
 bash prepare_ascat_manta_genelevel_for_R.sh \
