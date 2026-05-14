@@ -330,12 +330,27 @@ cd /data/person/wup/liusy/wgs/scripts/figures/3c
 ```bash
 # 提供ascat数据路径 /data/person/wup/liusy/sarek/test/result/variant_calling/ascat
 # 提供manta数据路径 /data/person/wup/liusy/sarek/test/result/variant_calling/manta
+# MIN_AMP_CN=4 AMP最低阈值。无论样本背景如何，扩增阈值最低不能低于 4
+# AMP_ABOVE_MODE=2 高于背景几个拷贝算AMP。比如 modal CN=3，则 AMP cutoff = 3+2=5
+# MODE_MAX_CN=10 计算modal CN时排除极端CN。CN>10 的短片段不参与背景拷贝数判断
+# MIN_AMP_SEGMENT_BP=100000 AMP片段最小长度。小于 100 kb 的高CN片段不算 AMP，避免噪音
+# DEL_CN=1 缺失阈值。total CN ≤ 1 算 DEL
+# AMP_CUTOFF_OVERRIDES="TSDX009:4,TSDX014:5" 手动指定样本AMP阈值。这里强制 TSDX009 的 AMP cutoff = 4。可以多个
 
+MIN_AMP_CN=4 \
+AMP_ABOVE_MODE=2 \
+MODE_MAX_CN=10 \
+MIN_AMP_SEGMENT_BP=100000 \
+DEL_CN=1 \
+AMP_CUTOFF_OVERRIDES="TSDX009:4" \
 bash prepare_ascat_manta_genelevel_for_R.sh \
   /data/person/wup/liusy/sarek/test/result/variant_calling/ascat \
   /data/person/wup/liusy/sarek/test/result/variant_calling/manta \
   /data/person/wup/public/liusy_files/reference_genomes/hg38/reference/host_annotation_beds/hg38.gencode.v49.basic.protein_coding.gene_body.4col.sorted.bed \
   .
+
+
+
 ```
 ### 输出文件说明
 - 00_ascat_manifest.tsv ：每个 ASCAT 结果文件对应一个样本
