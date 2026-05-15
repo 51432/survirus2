@@ -443,7 +443,11 @@ awk -F'\t' 'NR>1 && ($2=="TSDX017" || $2=="TSDX018"){print $2,$8}' \
   ./manta_somatic_sv_event_level_for_circos.tsv \
   | sort | uniq -c
 ```
-
+画图
+```bash
+cd  /home/xxn/software/circos-0.69-9/figure3
+/home/xxn/software/circos-0.69-9/bin/circos   -conf /home/xxn/scripts/individual_perl_circos/conf/circos_TSDX017.conf -noparanoid
+```
 再运行
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/figures/3b
