@@ -424,7 +424,26 @@ bash cnvkit_gene_cna_summary.sh \
 - 04_gene_cnvkit_events.long.tsv
 - 04_gene_cnvkit_input_files.tsv
 
-### 画figure 3S2-3个体的突变情况
+### 画figure 3S个体的landscape情况
+**个体Circos plot**
+生成 somatic SV event-level 文件
+```bash
+python ./manta_vcf_to_event_level_for_circos.py \
+  --manta_dir /data/person/wup/liusy/sarek/test/result/variant_calling/manta \
+  --out ./manta_somatic_sv_event_level_for_circos.tsv \
+  --pass_only
+```
+检查
+```bash
+awk -F'\t' 'NR==1 || $2=="TSDX017" || $2=="TSDX018"' \
+  ./manta_somatic_sv_event_level_for_circos.tsv \
+  | head -10
+
+awk -F'\t' 'NR>1 && ($2=="TSDX017" || $2=="TSDX018"){print $2,$8}' \
+  ./manta_somatic_sv_event_level_for_circos.tsv \
+  | sort | uniq -c
+```
+
 再运行
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/figures/3b
