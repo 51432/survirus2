@@ -448,15 +448,12 @@ awk -F'\t' 'NR>1 && ($2=="TSDX017" || $2=="TSDX018"){print $2,$8}' \
 cd  /home/xxn/software/circos-0.69-9/figure3
 /home/xxn/software/circos-0.69-9/bin/circos   -conf /home/xxn/scripts/individual_perl_circos/conf/circos_TSDX017.conf -noparanoid
 ```
-再运行
+再运行(Rstudio中)
 ```bash
-cd /data/person/wup/liusy/wgs/scripts/figures/3b
-#画驱动突变基因的oncoplot
-Rscript plot_Figure3B_driver_oncoprint.R
-#画两个个体病例卡片式表格：左边放突变型样本 TSDX025，右边放 POLE 超突变样本
-Rscript plot_FigureS3B_individual_driver_tables.R
-#画 POLE 超突变样本的突变summary figure
-Rscript plot_FigureS3B_individual_driver_tables.R
+source("~/scripts/plot_figure3s_circos_person.R")
+conda activate circos
+cd /home/xxn/scripts/individual_perl_circos
+/home/xxn/software/circos-0.69-9/bin/circos   -conf /home/xxn/scripts/individual_perl_circos/conf/circos_TSDX017.conf -noparanoid
 
 ```
 
