@@ -444,6 +444,11 @@ awk -F'\t' 'NR>1 && ($2=="TSDX017" || $2=="TSDX018"){print $2,$8}' \
   | sort | uniq -c
 ```
 再运行(Rstudio中)
+提前准备好如下文件
+- 01_ascat_segments.all.tsv
+- manta_somatic_sv_event_level_for_circos.tsv
+- integration_event_annotation.tsv
+- laml_sccc.rds
 ```bash
 source("~/scripts/plot_figure3s_circos_person.R")
 conda activate circos
