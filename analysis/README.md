@@ -456,6 +456,59 @@ cd /home/xxn/scripts/individual_perl_circos
 /home/xxn/software/circos-0.69-9/bin/circos   -conf /home/xxn/scripts/individual_perl_circos/conf/circos_TSDX017.conf -noparanoid
 
 ```
+### 画figure 3S个体的局部locus zoom
+**（局部整合chr8: 120-132 Mb、CNA segment, SV arc、HPV integration ticks、MYC / PVT1 / CCAT1 / CASC8）
+（这张图回答整合位点附近到底发生了什么结构变化）**
+先对tumor.bqsr.bam和tumor.bqsr.bam.bai文件进行处理得到用于画 coverage的数据```bash
+```bash
+CHR=chr12
+START=72114795
+END=72314795
+BIN=10
+BAM=/path/to/TSDX001.bqsr.bam
+OUT="TSDX001_${CHR}_${START}_${END}.coverage.${BIN}bp.tsv"
+
+samtools depth \
+  -aa \
+  -q 20 \
+  -Q 0 \
+  -r ${CHR}:${START}-${END} \
+  -G 3844 \
+  "$BAM" | \
+awk -v chr="$CHR" -v start="$START" -v end="$END" -v bin="$BIN" 'BEGIN{
+  OFS="\t";
+  print "chr","bin_start","bin_end","depth";
+}
+{
+  b=int(($2-start)/bin);
+  bs=start+b*bin;
+  be=bs+bin-1;
+  if(be>end) be=end;
+  sum[bs]+=$3;
+  n[bs]++;
+}
+END{
+  for(bs in sum){
+    be=bs+bin-1;
+    if(be>end) be=end;
+    print chr,bs,be,sum[bs]/n[bs];
+  }
+}' | sort -k2,2n > "$OUT"
+```
+
+提前准备好如下文件
+- 顶部：ASCAT tumour LogR signal：ASCAT segments.txt / cnvs.txt
+- 中间：HPV integration breakpoints：integration_event_annotation.tsv
+- 中间：host SV breakpoints，如果有 Manta/GRIDSS: /home/xxn/scripts/manta_somatic_sv_event_level_for_circos.tsv
+- 最底：driver genes
+- laml_sccc.rds
+```bash
+source("~/scripts/plot_figure3s_circos_person.R")
+conda activate circos
+cd /home/xxn/scripts/individual_perl_circos
+/home/xxn/software/circos-0.69-9/bin/circos   -conf /home/xxn/scripts/individual_perl_circos/conf/circos_TSDX017.conf -noparanoid
+
+```
 
 
 
