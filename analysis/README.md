@@ -461,13 +461,17 @@ cd /home/xxn/scripts/individual_perl_circos
 （这张图回答整合位点附近到底发生了什么结构变化）**
 先对tumor.bqsr.bam和tumor.bqsr.bam.bai文件进行处理得到用于画 coverage的数据```bash
 ```bash
-CHR=chr12
-START=72114795
-END=72314795
+cd /data/person/wup/liusy/wgs/scripts/figures/3c
+```
+```bash
+CHR=chr4
+START=141936171
+END=142153252
 BIN=10
-BAM=/path/to/TSDX001.bqsr.bam
-OUT="TSDX001_${CHR}_${START}_${END}.coverage.${BIN}bp.tsv"
-
+BAM=/data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/markdup_bam/TSDX002.markdup.bam
+OUT="TSDX002_${CHR}_${START}_${END}.coverage.${BIN}bp.tsv"
+```
+```bash
 samtools depth \
   -aa \
   -q 20 \
@@ -497,19 +501,17 @@ END{
 ```
 
 提前准备好如下文件
-- 顶部：ASCAT tumour LogR signal：ASCAT segments.txt / cnvs.txt
+- 顶部：ASCAT coverage：TSDX002_chr4_141936171_141953252.coverage.10bp.tsv
 - 中间：HPV integration breakpoints：integration_event_annotation.tsv
 - 中间：host SV breakpoints，如果有 Manta/GRIDSS: /home/xxn/scripts/manta_somatic_sv_event_level_for_circos.tsv
 - 最底：driver genes
 - laml_sccc.rds
+
 ```bash
-source("~/scripts/plot_figure3s_circos_person.R")
-conda activate circos
-cd /home/xxn/scripts/individual_perl_circos
-/home/xxn/software/circos-0.69-9/bin/circos   -conf /home/xxn/scripts/individual_perl_circos/conf/circos_TSDX017.conf -noparanoid
-
+cd /home/xxn/scripts
+Rscript figure3_plot_local_hpv_locus_multi.R TSDX001 chr12_TRHDE
+Rscript figure3_plot_local_hpv_locus_multi.R TSDX001
 ```
-
 
 
 
