@@ -456,6 +456,50 @@ cd /home/xxn/scripts/individual_perl_circos
 /home/xxn/software/circos-0.69-9/bin/circos   -conf /home/xxn/scripts/individual_perl_circos/conf/circos_TSDX017.conf -noparanoid
 
 ```
+### 亚克隆分析
+- (1) CNAqc 用来检查：ASCAT 给出的 purity / ploidy / allele-specific CNV 是否和 SNV 的 VAF 分布匹配
+```bash
+cd /data/person/wup/liusy
+# 提取 TSDX002 的 PASS SNV
+bcftools view \
+  -f PASS \
+  -v snps \
+  -m2 -M2 \
+  -s TSDX002 \
+  /data/person/wup/public/liusy_files/sccc/output/wgs_somatic/mutect2/mutect2/TSDX002__NSDX002.mutect2.selected-norm.wgs.vcf.gz \
+| bcftools query \
+  -f '%CHROM\t%POS\t%REF\t%ALT\t%FILTER[\t%AD\t%DP\t%AF]\n' \
+> TSDX002.PASS.SNV.tumor.AD_DP_AF.tsv
+# 然后拆分 AD
+awk 'BEGIN{
+  OFS="\t";
+  print "chr","pos","ref","alt","filter","ref_count","alt_count","depth","af"
+}
+{
+  split($6,a,",");
+  print $1,$2,$3,$4,$5,a[1],a[2],$7,$8
+}' TSDX002.PASS.SNV.tumor.AD_DP_AF.tsv \
+> TSDX002.PASS.SNV.for_CNAqc.tsv
+# 检查
+head TSDX002.PASS.SNV.for_CNAqc.tsv
+wc -l TSDX002.PASS.SNV.for_CNAqc.tsv
+
+bcftools query \
+  -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD\t%DP]\n' \
+  /data/person/wup/public/liusy_files/sccc/output/wgs_somatic/mutect2/mutect2/TSDX002__NSDX002.mutect2.selected-norm.wgs.vcf.gz \
+  > ./TSDX002.mutations.raw.tsv
+
+# 先查看 ASCAT purity / ploidy
+cat /data/person/wup/liusy/sarek/test/result/variant_calling/ascat/TSDX002_vs_NSDX002/TSDX002_vs_NSDX002.purityploidy.txt
+# 0.58    2.02193314504621
+
+# 整理 ASCAT segments
+
+
+```
+
+
+
 ### 画figure 3S个体的局部locus zoom
 **（局部整合chr8: 120-132 Mb、CNA segment, SV arc、HPV integration ticks、MYC / PVT1 / CCAT1 / CASC8）
 （这张图回答整合位点附近到底发生了什么结构变化）**
