@@ -459,7 +459,7 @@ cd /home/xxn/scripts/individual_perl_circos
 ### 亚克隆分析
 - (1) CNAqc 用来检查：ASCAT 给出的 purity / ploidy / allele-specific CNV 是否和 SNV 的 VAF 分布匹配
 ```bash
-cd /data/person/wup/liusy
+cd /data/person/wup/liusy/wgs/scripts/figures/3c
 # 提取 TSDX002 的 PASS SNV
 bcftools view \
   -f PASS \
@@ -484,6 +484,12 @@ awk 'BEGIN{
 head TSDX002.PASS.SNV.for_CNAqc.tsv
 wc -l TSDX002.PASS.SNV.for_CNAqc.tsv
 
+awk 'BEGIN{OFS="\t"; print "chr","from","to","ref","alt","DP","NV","VAF"}
+NR>1{
+  print $1,$2,$2,$3,$4,$8,$7,$9
+}' TSDX002.PASS.SNV.for_CNAqc.tsv \
+> TSDX002.mutations.CNAqc.tsv
+
 bcftools query \
   -f '%CHROM\t%POS\t%REF\t%ALT[\t%AD\t%DP]\n' \
   /data/person/wup/public/liusy_files/sccc/output/wgs_somatic/mutect2/mutect2/TSDX002__NSDX002.mutect2.selected-norm.wgs.vcf.gz \
@@ -494,7 +500,21 @@ cat /data/person/wup/liusy/sarek/test/result/variant_calling/ascat/TSDX002_vs_NS
 # 0.58    2.02193314504621
 
 # 整理 ASCAT segments
+ASCAT_DIR=/data/person/wup/liusy/sarek/test/result/variant_calling/ascat/TSDX002_vs_NSDX002
 
+awk 'BEGIN{OFS="\t"; print "chr","from","to","Major","minor"}
+NR>1{
+  c=$2
+  if(c=="X" || c=="Y"){
+    c="chr"c
+  } else {
+    c="chr"c
+  }
+  print c,$3,$4,$5,$6
+}' ${ASCAT_DIR}/TSDX002_vs_NSDX002.segments.txt \
+> TSDX002.ASCAT.CNAqc.tsv
+
+Rscript run_TSDX002_CNAqc.R
 
 ```
 
