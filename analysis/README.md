@@ -515,10 +515,22 @@ NR>1{
 > TSDX002.ASCAT.CNAqc.tsv
 
 Rscript run_TSDX002_CNAqc.R
-
 ```
+- 2.准备 MutationTimeR 输入
+```bash
+VCF=/data/person/wup/public/liusy_files/sccc/output/wgs_somatic/mutect2/mutect2/TSDX002__NSDX002.mutect2.selected-norm.wgs.vcf.gz
 
+bcftools view \
+  -f PASS \
+  -v snps \
+  -m2 -M2 \
+  -s TSDX002 \
+  -Oz \
+  -o TSDX002.PASS.SNV.tumor_only.vcf.gz \
+  $VCF
 
+tabix -p vcf TSDX002.PASS.SNV.tumor_only.vcf.gz
+```
 
 ### 画figure 3S个体的局部locus zoom
 **（局部整合chr8: 120-132 Mb、CNA segment, SV arc、HPV integration ticks、MYC / PVT1 / CCAT1 / CASC8）
