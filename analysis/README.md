@@ -581,7 +581,7 @@ END{
 cd /data/person/wup/liusy/wgs/scripts/figures/3c
 CHR="HPV18REF|lcl|Human"
 BAM="/data/person/wup/liusy/wgs/results/integration/TSDX001/bam_0/retained-pairs.remapped.cs.bam"
-BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/virus-side.cs.bam
+BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/retained-pairs.remapped.cs.bam
 OUT="TSDX001_HPV18.coverage.bp.tsv"
 
 samtools depth -aa -r ${CHR} {BAM}   > ${OUT}   
@@ -590,8 +590,8 @@ samtools depth -aa -r ${CHR} {BAM}   > ${OUT}
 ```bash
 conda activate igv
 cd /data/person/wup/liusy/wgs/scripts/figures/3c
-BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/virus-side.cs.bam
-
+BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/retained-pairs.remapped.cs.bam
+# 提取局部 reads
 samtools view -b \
   $BAM \
   chr4:142030000-142060000 \
@@ -607,6 +607,22 @@ samtools fastq \
   -s TSDX002.local.single.fq \
   -n \
   TSDX002.chr4_HPV.local.name.bam
+# 用 SPAdes 组装
+spades.py \
+  --careful \
+  -1 TSDX002.local.R1.fq \
+  -2 TSDX002.local.R2.fq \
+  -s TSDX002.local.single.fq \
+  -o TSDX002.local_spades
+
+# 查看所有 contig 名称和长度
+grep ">" TSDX002.local_spades/contigs.fasta
+
+# 把 contig 比对回 hg38+HPV
+minimap2 -ax asm5 hg38_plus_HPV.fa TSDX002.local_spades/contigs.fasta \
+  | samtools sort -o TSDX002.local_contigs.to_ref.bam
+
+samtools index TSDX002.local_contigs.to_ref.bam
 
 ```
 
