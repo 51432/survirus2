@@ -576,6 +576,18 @@ END{
 }' | sort -k2,2n > "$OUT"
 ```
 
+获取HPV coverage的文件
+```bash
+cd /data/person/wup/liusy/wgs/scripts/figures/3c
+CHR="HPV18REF|lcl|Human"
+BAM="/data/person/wup/liusy/wgs/results/integration/TSDX001/bam_0/retained-pairs.remapped.cs.bam"
+BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/virus-side.cs.bam
+OUT="TSDX001_HPV18.coverage.bp.tsv"
+
+samtools depth -aa -r ${CHR} {BAM}   > ${OUT}   
+
+```
+
 提前准备好如下文件
 - 顶部：ASCAT coverage：TSDX002_chr4_141936171_141953252.coverage.10bp.tsv
 - 中间：HPV integration breakpoints：integration_event_annotation.tsv
