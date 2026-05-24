@@ -576,7 +576,7 @@ END{
 }' | sort -k2,2n > "$OUT"
 ```
 
-获取HPV coverage的文件
+**获取HPV coverage的文件**
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/figures/3c
 CHR="HPV18REF|lcl|Human"
@@ -585,8 +585,32 @@ BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/virus-side.c
 OUT="TSDX001_HPV18.coverage.bp.tsv"
 
 samtools depth -aa -r ${CHR} {BAM}   > ${OUT}   
+```
+**断点AB-HPV结果局部组装**
+```bash
+conda activate igv
+cd /data/person/wup/liusy/wgs/scripts/figures/3c
+BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/virus-side.cs.bam
+
+samtools view -b \
+  $BAM \
+  chr4:142030000-142060000 \
+  'HPV18REF|lcl|Human:1-7857' \
+  > TSDX002.chr4_HPV.local.bam
+
+samtools sort -n -o TSDX002.chr4_HPV.local.name.bam TSDX002.chr4_HPV.local.bam
+
+samtools fastq \
+  -1 TSDX002.local.R1.fq \
+  -2 TSDX002.local.R2.fq \
+  -0 /dev/null \
+  -s TSDX002.local.single.fq \
+  -n \
+  TSDX002.chr4_HPV.local.name.bam
 
 ```
+
+
 
 提前准备好如下文件
 - 顶部：ASCAT coverage：TSDX002_chr4_141936171_141953252.coverage.10bp.tsv
