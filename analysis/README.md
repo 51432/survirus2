@@ -590,12 +590,13 @@ samtools depth -aa -r ${CHR} {BAM}   > ${OUT}
 ```bash
 conda activate igv
 cd /data/person/wup/liusy/wgs/scripts/figures/3c
-BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/retained-pairs.remapped.cs.bam
+BAM=/data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/preprocessing/markduplicates/TSDX002/TSDX002.md.bam
+REF=/data/person/wup/public/liusy_files/reference_genomes/host_virus/Homo_sapiens_assembly38_plus_HPV.fa
+
 # 提取局部 reads
 samtools view -b \
   $BAM \
-  chr4:142030000-142060000 \
-  'HPV18REF|lcl|Human:1-7857' \
+  chr4:142030000-142060000 HPV18 \
   > TSDX002.chr4_HPV.local.bam
 
 samtools sort -n -o TSDX002.chr4_HPV.local.name.bam TSDX002.chr4_HPV.local.bam
@@ -608,6 +609,7 @@ samtools fastq \
   -n \
   TSDX002.chr4_HPV.local.name.bam
 # 用 SPAdes 组装
+
 spades.py \
   --careful \
   -1 TSDX002.local.R1.fq \
@@ -618,11 +620,33 @@ spades.py \
 # 查看所有 contig 名称和长度
 grep ">" TSDX002.local_spades/contigs.fasta
 
-# 把 contig 比对回 hg38+HPV
-minimap2 -ax asm5 hg38_plus_HPV.fa TSDX002.local_spades/contigs.fasta \
+# 把 contig 比对回 hg38+HPV, 如果 contigs 比较短，asm5 可能过严，可以再试asm10
+minimap2 -ax asm5 ${REF} TSDX002.local_spades/contigs.fasta \
   | samtools sort -o TSDX002.local_contigs.to_ref.bam
-
 samtools index TSDX002.local_contigs.to_ref.bam
+
+# 如果 contigs 比较短，asm5 可能过严，可以再试asm10
+minimap2 -ax asm10 ${REF} TSDX002.local_spades/contigs.fasta \
+  | samtools sort -o TSDX002.local_contigs.to_ref.bam
+samtools index TSDX002.local_contigs.to_ref.bam
+# 输出paf文件
+minimap2 -x asm10 -c --cs --secondary=yes \
+  ${REF} TSDX002.local_spades/contigs.fasta \
+  > TSDX002.local_contigs.to_ref.asm10.paf
+
+#查看每条contig的比对情况
+awk 'BEGIN{
+  OFS="\t";
+  print "contig","q_len","q_start","q_end","strand","target","t_start","t_end","match","aln_len","mapq"
+}
+{
+  print $1,$2,$3,$4,$5,$6,$8,$9,$10,$11,$12
+}' TSDX002.local_contigs.to_ref.asm10.paf \
+| sort -k1,1 -k3,3n \
+> TSDX002.local_contigs.to_ref.asm10.summary.tsv
+
+cat TSDX002.local_contigs.to_ref.asm10.summary.tsv
+
 
 ```
 
