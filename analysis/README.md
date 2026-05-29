@@ -649,7 +649,12 @@ cat TSDX002.local_contigs.to_ref.asm10.summary.tsv
 
 
 ```
+**整合A-HPV-B串联扩增是发生在单条染色体还是两条染色体**
+```bash
+./quick_check_TSDX002_chr4_AB_ascat.sh 
+#查看BAF，BAF=0.5就说明是等位基因来源
 
+```
 
 
 提前准备好如下文件
