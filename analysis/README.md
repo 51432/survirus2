@@ -654,6 +654,9 @@ cat TSDX002.local_contigs.to_ref.asm10.summary.tsv
 ./quick_check_TSDX002_chr4_AB_ascat.sh 
 #查看BAF，BAF=0.5就说明是等位基因来源
 
+# 查看断点附近结构变异i
+./check_TSDX002_chr4_AB_manta.sh
+
 ```
 
 
