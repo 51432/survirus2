@@ -536,7 +536,7 @@ tabix -p vcf TSDX002.PASS.SNV.tumor_only.vcf.gz
 **（局部整合chr8: 120-132 Mb、CNA segment, SV arc、HPV integration ticks、MYC / PVT1 / CCAT1 / CASC8）
 （这张图回答整合位点附近到底发生了什么结构变化）**
 先对tumor.bqsr.bam和tumor.bqsr.bam.bai文件进行处理得到用于画 coverage的数据
-- R中获得coverage_start_end.tsv文件包含下面的信息
+**R中获得coverage_start_end.tsv文件包含下面的信息**
 | sample_id | host_chr | host_pos_min | host_pos_max | coverage_start | coverage_end | HPV | path |
 |-----------|----------|--------------|--------------|----------------|--------------|-----|------|
 | XHS_tumor | chr4 | 112516402 | 112525256 | 112507548 | 112534110 | HPV18 | /data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/markdup_bam/XHS_tumor.markdup.bam |
