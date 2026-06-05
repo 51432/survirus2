@@ -535,47 +535,25 @@ tabix -p vcf TSDX002.PASS.SNV.tumor_only.vcf.gz
 ### 画figure 3S个体的局部locus zoom
 **（局部整合chr8: 120-132 Mb、CNA segment, SV arc、HPV integration ticks、MYC / PVT1 / CCAT1 / CASC8）
 （这张图回答整合位点附近到底发生了什么结构变化）**
-先对tumor.bqsr.bam和tumor.bqsr.bam.bai文件进行处理得到用于画 coverage的数据```bash
-```bash
-cd /data/person/wup/liusy/wgs/scripts/figures/3c
-```
-```bash
-CHR=chr4
-START=141936171
-END=142153252
-BIN=10
-BAM=/data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/markdup_bam/TSDX002.markdup.bam
-OUT="TSDX002_${CHR}_${START}_${END}.coverage.${BIN}bp.tsv"
-```
-```bash
-samtools depth \
-  -aa \
-  -q 20 \
-  -Q 0 \
-  -r ${CHR}:${START}-${END} \
-  -G 3844 \
-  "$BAM" | \
-awk -v chr="$CHR" -v start="$START" -v end="$END" -v bin="$BIN" 'BEGIN{
-  OFS="\t";
-  print "chr","bin_start","bin_end","depth";
-}
-{
-  b=int(($2-start)/bin);
-  bs=start+b*bin;
-  be=bs+bin-1;
-  if(be>end) be=end;
-  sum[bs]+=$3;
-  n[bs]++;
-}
-END{
-  for(bs in sum){
-    be=bs+bin-1;
-    if(be>end) be=end;
-    print chr,bs,be,sum[bs]/n[bs];
-  }
-}' | sort -k2,2n > "$OUT"
-```
+先对tumor.bqsr.bam和tumor.bqsr.bam.bai文件进行处理得到用于画 coverage的数据
+- R中获得coverage_start_end.tsv文件包含下面的信息
+| sample_id | host_chr | host_pos_min | host_pos_max | coverage_start | coverage_end | HPV | path |
+|-----------|----------|--------------|--------------|----------------|--------------|-----|------|
+| XHS_tumor | chr4 | 112516402 | 112525256 | 112507548 | 112534110 | HPV18 | /data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/markdup_bam/XHS_tumor.markdup.bam |
 
+```bash
+cd /data/person/wup/liusy/wgs/scripts/figures/3c/coverage
+```
+```bash
+#检查bam文件路径是否正确
+awk 'NR>1{file=$8; if(!(file in seen)){seen[file]; cmd="test -f \""file"\""; if(system(cmd)) print "缺失: " file}}' coverage_start_end.tsv
+# 读取TSV文件，跳过表头，为每一行生成coverage数据
+tail -n +2 coverage_start_end.tsv | while IFS=$'\t' read -r SAMPLE CHR HOST_POS_MIN HOST_POS_MAX START END HPV BAM; do
+    OUT="${SAMPLE}_${CHR}_${START}_${END}.coverage.tsv"
+    samtools depth -aa -r ${CHR}:${START}-${END} ${BAM} > ${OUT}
+    echo "生成: ${OUT}"
+done
+```
 **获取HPV coverage的文件**
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/figures/3c
