@@ -537,18 +537,18 @@ tabix -p vcf TSDX002.PASS.SNV.tumor_only.vcf.gz
 （这张图回答整合位点附近到底发生了什么结构变化）**
 先对tumor.bqsr.bam和tumor.bqsr.bam.bai文件进行处理得到用于画 coverage的数据
 **R中获得coverage_start_end.tsv文件包含下面的信息**
-| sample_id | host_chr | host_pos_min | host_pos_max | coverage_start | coverage_end | HPV | path |
-|-----------|----------|--------------|--------------|----------------|--------------|-----|------|
-| XHS_tumor | chr4 | 112516402 | 112525256 | 112507548 | 112534110 | HPV18 | /data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/markdup_bam/XHS_tumor.markdup.bam |
+| sample_id | host_chr | host_pos_min | host_pos_max | coverage_start | coverage_end | path | path_hpv | virus_contig |
+|-----------|----------|--------------|--------------|----------------|--------------|------|----------|--------------|
+| HP_tumor | chr8 | 128154287 | 128154306 | 128153287 | 128155306 | /data/person/wup/public/liusy_files/sccc/preprocessed_bam/wgs/markdup_bam/HP_tumor.markdup.bam | /data/person/wup/public/liusy_files/sccc/survirus/HP_tumor/bam_0/retained-pairs.remapped.cs.bam | HPV16REF\|lcl\|Human |
 
 ```bash
 cd /data/person/wup/liusy/wgs/scripts/figures/3c/coverage
 ```
 ```bash
 #检查bam文件路径是否正确
-awk 'NR>1{file=$8; if(!(file in seen)){seen[file]; cmd="test -f \""file"\""; if(system(cmd)) print "缺失: " file}}' coverage_start_end.tsv
+awk 'NR>1{file=$7; if(!(file in seen)){seen[file]; cmd="test -f \""file"\""; if(system(cmd)) print "缺失: " file}}' coverage_start_end.tsv
 # 读取TSV文件，跳过表头，为每一行生成coverage数据
-tail -n +2 coverage_start_end.tsv | while IFS=$'\t' read -r SAMPLE CHR HOST_POS_MIN HOST_POS_MAX START END HPV BAM; do
+tail -n +2 coverage_start_end.tsv | while IFS=$'\t' read -r SAMPLE CHR HOST_POS_MIN HOST_POS_MAX START END BAM REMAPPED_BAM HPVREF; do
     OUT="${SAMPLE}_${CHR}_${START}_${END}.coverage.tsv"
     samtools depth -aa -r ${CHR}:${START}-${END} ${BAM} > ${OUT}
     echo "生成: ${OUT}"
@@ -556,14 +556,17 @@ done
 ```
 **获取HPV coverage的文件**
 ```bash
-cd /data/person/wup/liusy/wgs/scripts/figures/3c
-CHR="HPV18REF|lcl|Human"
-BAM="/data/person/wup/liusy/wgs/results/integration/TSDX001/bam_0/retained-pairs.remapped.cs.bam"
-BAM=/data/person/wup/public/liusy_files/sccc/survirus/TSDX002/bam_0/retained-pairs.remapped.cs.bam
-OUT="TSDX001_HPV18.coverage.bp.tsv"
+#检查bam文件路径是否正确
+awk 'NR>1{file=$8; if(!(file in seen)){seen[file]; cmd="test -f \""file"\""; if(system(cmd)) print "缺失: " file}}' coverage_start_end.tsv
 
-samtools depth -aa -r ${CHR} {BAM}   > ${OUT}   
+tail -n +2 coverage_start_end.tsv | while IFS=$'\t' read -r SAMPLE CHR HOST_POS_MIN HOST_POS_MAX START END BAM REMAPPED_BAM HPVREF; do
+    OUT="${SAMPLE}.hpv.coverage.tsv"
+    samtools depth -aa -r ${HPVREF} ${REMAPPED_BAM} > ${OUT}
+    echo "生成: ${OUT}"
+done
 ```
+**回到R中画图 figure3_plot_local_hpv_locus_multi.R**
+
 **断点AB-HPV结果局部组装**
 ```bash
 conda activate igv
